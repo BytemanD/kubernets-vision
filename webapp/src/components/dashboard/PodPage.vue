@@ -3,8 +3,10 @@
   :items-per-page="table.itemsPerPage" :search="table.search"
   show-select v-model="table.selected" show-expand single-expand>
 
-  <template v-slot:[`item.ready`]="{ item }">
-    {{ item.ready_replicas }}/{{ item.replicas }}
+  <template v-slot:[`item.containers`]="{ item }">
+      <v-chip small label class="my-1 mr-1" v-for="container in item.containers" v-bind:key="container.name">
+        {{ container.name }}
+      </v-chip>
   </template>
 
   <template v-slot:expanded-item="{ headers, item }">

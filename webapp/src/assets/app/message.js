@@ -1,4 +1,5 @@
 import SETTINGS from './settings.js'
+import { Notify } from "vuetify-message-snackbar";
 
 export class Message {
 
@@ -6,16 +7,16 @@ export class Message {
         this.position = SETTINGS.getItem('messagePosition');
     }
     warn(msg) {
-        console.log('WARNING', msg)
+        Notify.warning(msg)
     }
     info(msg) {
-        console.log('INFO', msg)
+        Notify.info(msg)
     }
     success(msg) {
-        console.log('SUCCESS', msg)
+        Notify.success(msg)
     }
     error(msg) {
-        console.log('ERROR', msg)
+        Notify.error(msg)
     }
 
 }

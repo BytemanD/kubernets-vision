@@ -1,7 +1,6 @@
-import MESSAGE from './message.js'
 import API from './api.js'
 import { Utils } from './utils';
-
+import { Notify } from "vuetify-message-snackbar";
 
 export class DataTable {
     constructor(headers, api, bodyKey = null, name = '') {
@@ -33,17 +32,17 @@ export class DataTable {
         if (this.selected.length == 0) {
             return;
         }
-        MESSAGE.info(`${this.name} 删除中`)
+        this.$MESSAGE.info(`${this.name} 删除中`)
         for (let i in this.selected) {
             let item = this.selected[i];
             try {
                 await this.api.delete(item.id || item.name);
                 this.waitDeleted(item.id || item.name);
             } catch {
-                MESSAGE.error(`删除 ${this.name} ${item.id} 失败`)
+                this.$MESSAGE.error(`删除 ${this.name} ${item.id} 失败`)
             }
         }
-        MESSAGE.success('删除完成');
+        this.$MESSAGE.success('删除完成');
         this.refresh();
         this.resetSelected();
     }
@@ -52,7 +51,7 @@ export class DataTable {
         while (deleted) {
             let body = await this.api.list({ id: id });
             if (body[this.bodyKey].length == 0) {
-                MESSAGE.success(`${this.name} ${id} 删除成功`, 2);
+                this.$MESSAGE.success(`${this.name} ${id} 删除成功`, 2);
                 this.refresh();
                 deleted = true;
                 continue
@@ -86,7 +85,7 @@ export class DataTable {
             this.items = this.bodyKey ? result[this.bodyKey] : result;
             return result;
         } catch (e) {
-            console.error('请求失败', e)
+            this.$MESSAGE.error('请求失败', e)
         } finally {
             this.refreshing = false;
         }
@@ -116,9 +115,8 @@ export class NodeTable extends DataTable {
     }
     async deleteLabel(item, label){
         await API.action.post({deleteLabel: {kind: 'node', name: item.name, label: label}});
-        MESSAGE.success(`标签 ${label} 删除成功`)
+        Notify.success(`标签 ${label} 删除成功`)
         this.refresh();
-
     }
 }
 export class NamespaceTable extends DataTable {
@@ -160,10 +158,17 @@ export class DeploymentTable extends DataTable {
 }
 export class PodTable extends DataTable {
     constructor() {
-        super([{ text: '名字', value: 'name' },
-          
+        super([
+            { text: '名字', value: 'name' },
+            { text: 'node_name', value: 'node_name' },
+            { text: 'pod_ip', value: 'pod_ip' },
+            { text: 'containers', value: 'containers' },
         ], API.pod, 'pods', 'Pod');
-        this.extendItems = [];
+        this.extendItems = [
+            { text: 'labels', value: 'labels' },
+            { text: 'node_selector', value: 'node_selector' },
+            { text: 'containers', value: 'containers' },
+        ];
     }
 }
 

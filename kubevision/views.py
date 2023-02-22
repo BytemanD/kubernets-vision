@@ -6,8 +6,6 @@ from tornado import web
 from kubevision.common import conf
 from kubevision.common import context
 from kubevision.k8s import api
-
-from kubevision.common import constants
 from kubevision.common import utils
 
 LOG = logging.getLogger(__name__)
@@ -106,16 +104,28 @@ class Action(BaseReqHandler):
     def post(self):
         body = self._get_body()
         if 'deleteLabel' in body.keys():
-            LOG.debug('111111111111111111111')
             data = body.get('deleteLabel')
             self.delete_label(data.get('kind'), data.get('name'),
                               data.get('label'))
-            LOG.debug('222222222222222222')
+        elif 'addLabel' in body.keys():
+            data = body.get('addLabel')
+            self.add_label(data.get('kind'), data.get('name'),
+                           data.get('labels'))
 
     def delete_label(self, kind, name, label):
-
         if kind == 'node':
             api.CLIENT.delete_node_label(name, label)
+
+    def add_label(self, kind, name, labels):
+        """Add Lable
+
+        Args:
+            kind (string): resource kind
+            name (string): resource name
+            labels (lables): dict, e.g. {key1: value1}
+        """
+        if kind == 'node':
+            api.CLIENT.add_node_label(name, labels)
 
 
 class Configs(web.RequestHandler):

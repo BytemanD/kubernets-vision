@@ -47,3 +47,28 @@ class DaemonSet:
 @dataclass
 class Pod:
     name: str
+    labels: list
+    node_name: str
+    node_selector: dict
+    host_ip: str
+    pod_ip: str
+    containers: list
+
+    @classmethod
+    def from_object(cls, obj):
+        name = obj.metadata.name
+        labels = obj.metadata.labels
+        host_ip = obj.status.host_ip
+        pod_ip = obj.status.pod_ip
+        node_name = obj.spec.node_name
+        node_selector = obj.spec.node_selector
+        containers = []
+        for container in obj.spec.containers:
+            containers.append({
+                'name': container.name,
+                'image': container.image,
+                'command': container.command
+            })
+        return Pod(name=name, labels=labels, node_name=node_name,
+                   node_selector=node_selector, host_ip=host_ip,
+                   pod_ip=pod_ip, containers=containers)

@@ -1,10 +1,8 @@
-from distutils.command import install
 import shutil
 import os
 
 from easy2use import fs
 from easy2use.common import msgfmt
-
 
 kubevision = 'kubevision'
 I18N_DIR = 'i18n'

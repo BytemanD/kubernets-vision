@@ -94,6 +94,9 @@ export class Api {
         this.pod = new Pod();
         this.action = new Action();
     }
+    async addNodeLabels (name, labels){
+        await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});
+    }
 }
 
 const API = new Api();

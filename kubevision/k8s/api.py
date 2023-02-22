@@ -2,6 +2,7 @@ import logging
 
 from kubernetes import client, config
 from kubernetes.client.models import v1_daemon_set
+
 from kubevision.common import conf
 from kubevision.k8s import objects
 from kubevision.common import constants
@@ -60,6 +61,17 @@ class ClientWrapper(object):
         if label not in node.metadata.labels:
             raise exceptions.NodeLabelNotFound(node=name, label=label)
         del node.metadata.labels[label]
+        self.api.replace_node(name, node)
+
+    def add_node_label(self, name, labels):
+        node = self.get_node(name)
+        if not node:
+            raise exceptions.NodeNotFound(node=name)
+        for key, value in labels.items():
+            if key in node.metadata.labels:
+                raise exceptions.NodeLabelExists(node=name, label=key)
+            node.metadata.labels[key] = value or ''
+
         self.api.replace_node(name, node)
 
     def _get_container_runtime_version(self, node_info):
@@ -139,14 +151,9 @@ class ClientWrapper(object):
     def list_pod(self, ns=constants.DEFAULT_NAMESPACE):
         items = []
         for obj in self.api.list_namespaced_pod(ns).items:
-            # import pdb;  pdb.set_trace()
-            items.append(objects.Pod(
-                name=obj.metadata.name,
-            ))
+            LOG.info(obj)
+            items.append(objects.Pod.from_object(obj))
         return items
-
-    def delete_label(self):
-        self.api.delete
 
 
 def init(config_file=None):

@@ -17,3 +17,7 @@ class NodeNotFound(exs.BaseException):
 
 class NodeLabelNotFound(exs.BaseException):
     _msg = 'Label {label} not found in {node}'
+
+
+class NodeLabelExists(exs.BaseException):
+    _msg = 'Label {label} exists in {node}'

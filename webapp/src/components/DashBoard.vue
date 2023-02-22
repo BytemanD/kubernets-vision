@@ -2,7 +2,7 @@
     <v-app>
       <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant" dark>
           <v-list-item two-line class="px-2">
-              <v-list-item-avatar class="ml-0" tile><img :src="require('../assets/logo.svg')"></v-list-item-avatar>
+              <v-list-item-avatar class="ml-0" tile><img src="../../public/favicon.svg"></v-list-item-avatar>
               <v-list-item-content>
                 <v-list-item-title>{{ name }}</v-list-item-title>
               </v-list-item-content>
@@ -18,7 +18,6 @@
                         </v-list-item-content>
                     </v-list-item>
                 </template>
-  
             </v-list-item-group>
           </v-list>
            <!-- miniVariant -->
@@ -43,8 +42,6 @@
 </template>
 
 <script>
-// import func from 'vue-editor-bridge';
-//   import HelloWorld from './components/HelloWorld';
 import OverView from './dashboard/OverView';
 import NameSpace from './dashboard/NameSpace';
 import DaemonSet from './dashboard/DaemonSet';
@@ -59,8 +56,6 @@ const navigationItems = [
     { title: 'Pod', icon: 'mdi-alpha-p-circle' },
 ]
   export default {
-    // name: 'App',
-  
     components: {
         OverView, NameSpace, DaemonSet, DeploymentPage, PodPage
     },
@@ -77,8 +72,7 @@ const navigationItems = [
     methods: {
         toggleMiniVariant: function (){
             this.miniVariant = !this.miniVariant;
-        }
+        },
     }
   };
-  </script>
-  
+</script>
