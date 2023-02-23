@@ -16,6 +16,7 @@ export class DataTable {
         this.selected = []
         this.extendItems = []
         this.newItemDialog = null;
+        this.namespace = 'default';
     }
     async openNewItemDialog(){
         if (this.newItemDialog){
@@ -75,6 +76,9 @@ export class DataTable {
     }
     async refresh(filters = {}) {
         let result = null
+        if (this.namespace){
+            filters.namespace = this.namespace
+        }
         try {
             this.refreshing = true;
             if ( typeof this.api.detail != 'undefined' ) {
@@ -85,7 +89,8 @@ export class DataTable {
             this.items = this.bodyKey ? result[this.bodyKey] : result;
             return result;
         } catch (e) {
-            this.$MESSAGE.error('请求失败', e)
+            this.$MESSAGE.error('请求失败')
+            console.error(e);
         } finally {
             this.refreshing = false;
         }
@@ -138,9 +143,9 @@ export class DaemonsetTable extends DataTable {
                { text: 'selector', value: 'selector' },
                { text: 'containers', value: 'containers' },
             ], API.daemonset, 'daemonsets', '服务守护进程');
-            this.extendItems = [
-                { text: 'images', value: 'images' },
-            ];
+        this.extendItems = [
+            { text: 'images', value: 'images' },
+        ];
     }
 }
 export class DeploymentTable extends DataTable {

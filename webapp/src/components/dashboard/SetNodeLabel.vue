@@ -4,9 +4,9 @@
             <v-card-title class="headline grey lighten-2" primary-title>添加标签</v-card-title>
             <v-card-text>
                 <h3>节点</h3>
-                <v-chip label v-for="node in selectedNodes" v-bind:key="node.name">{{ node.name }}</v-chip>
+                <v-chip label class="ma-1" v-for="node in selectedNodes" v-bind:key="node.name">{{ node.name }}</v-chip>
                 <h3>请输入标签</h3>
-                <v-textarea class="mt-1" solo v-model='labels' label="标签" ></v-textarea>
+                <v-textarea class="mt-1" outlined v-model='labels'></v-textarea>
             </v-card-text>
             <v-divider></v-divider>
             <v-card-actions>

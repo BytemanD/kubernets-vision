@@ -3,8 +3,8 @@
 from easy2use.common import exceptions as exs
 
 
-class EndpointNotFound(exs.BaseException):
-    _msg = 'Endpoints for service:{service} region:{region} is not found'
+class KubeConfigNotExists(exs.BaseException):
+    _msg = 'Kube config {file} is not exists'
 
 
 class PipInstallFailed(exs.BaseException):

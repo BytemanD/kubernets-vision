@@ -3,6 +3,7 @@ import socket
 import logging
 
 from easy2use.globals import cfg
+from kubevision.common import constants
 
 LOG = logging.getLogger(__name__)
 
@@ -21,8 +22,7 @@ default_options = [
 
 
 def load_configs():
-    for file in ['/etc/kubevision/kubevision.conf',
-                 os.path.join('etc', 'kubevision.conf')]:
+    for file in constants.DEFAULT_CONF_FILES:
         if not os.path.exists(file):
             continue
         LOG.info('Load config file from %s', file)

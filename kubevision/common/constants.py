@@ -1,3 +1,6 @@
+import os
+
+
 NAME = 'KubeVision'
 
 AUTH = 'fjboy'
@@ -9,3 +12,7 @@ IMAGE_TAGS_API = f'https://hub.docker.com/v2/namespaces/{IMAGE_NAMESPACE}' \
                  f'/repositories/{NAME}/tags'
 
 DEFAULT_NAMESPACE = 'default'
+
+DEFAULT_CONF_FILES = ['/etc/kubevision/kubevision.conf',
+                      os.path.join('etc', 'kubevision.conf')]
+DEFAULT_KUBE_CONFIG = os.path.join(os.getenv("HOME"), '.kube', 'config')

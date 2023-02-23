@@ -1,4 +1,5 @@
 import logging
+import pathlib
 
 from kubernetes import client, config
 from kubernetes.client.models import v1_daemon_set
@@ -156,10 +157,12 @@ class ClientWrapper(object):
         return items
 
 
-def init(config_file=None):
+def init(kube_config):
     global CLIENT
 
-    config.kube_config.load_kube_config(
-        config_file=config_file or '/root/.kube/config')
+    if not pathlib.Path(kube_config).exists():
+        raise exceptions.KubeConfigNotExists(file=kube_config)
+
+    config.kube_config.load_kube_config(config_file=kube_config)
 
     CLIENT = ClientWrapper()

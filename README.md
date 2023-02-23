@@ -1,5 +1,5 @@
-# kubernets-vision
-kubernets dashboard
+# kubernetes-vision
+kubernetes dashboard
 
 
 ```bash

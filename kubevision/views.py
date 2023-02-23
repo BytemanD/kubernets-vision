@@ -4,9 +4,9 @@ import logging
 from tornado import web
 
 from kubevision.common import conf
-from kubevision.common import context
-from kubevision.k8s import api
+from kubevision.common import constants
 from kubevision.common import utils
+from kubevision.k8s import api
 
 LOG = logging.getLogger(__name__)
 CONF = conf.CONF
@@ -28,10 +28,6 @@ def registry_route(url):
 
 class BaseReqHandler(web.RequestHandler):
 
-    def _get_context(self):
-        return context.ClusterContext(self.get_cookie('clusterId'),
-                                      region=self.get_cookie('region'))
-
     def return_resp(self, status, data):
         self.set_status(status)
         self.finish(data)
@@ -46,6 +42,9 @@ class BaseReqHandler(web.RequestHandler):
         self.set_header('Access-Control-Allow-Max-Age', 1000)
         self.set_header('Access-Control-Allow-Methods',
                         'GET, POST, PUT, DELETE, OPTIONS')
+
+    def _get_namespace(self):
+        return self.get_argument('namespace', constants.DEFAULT_NAMESPACE)
 
     @utils.with_response(return_code=204)
     def options(self):
@@ -75,7 +74,7 @@ class Deployment(BaseReqHandler):
 
     @utils.response
     def get(self):
-        items = api.CLIENT.list_deploy()
+        items = api.CLIENT.list_deploy(ns=self._get_namespace())
         return {'deployments': [item.__dict__ for item in items]}
 
 
@@ -84,7 +83,8 @@ class Daemonset(BaseReqHandler):
 
     @utils.response
     def get(self):
-        items = api.CLIENT.list_daemonset()
+        LOG.info('namespace is %s', self._get_namespace())
+        items = api.CLIENT.list_daemonset(ns=self._get_namespace())
         return {'daemonsets': [item.__dict__ for item in items]}
 
 
@@ -93,7 +93,7 @@ class Pod(BaseReqHandler):
 
     @utils.response
     def get(self):
-        items = api.CLIENT.list_pod()
+        items = api.CLIENT.list_pod(ns=self._get_namespace())
         return {'pods': [item.__dict__ for item in items]}
 
 
