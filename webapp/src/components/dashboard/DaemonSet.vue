@@ -18,6 +18,9 @@
                <template v-slot:[`item.selector`]="{ item }">
                    <v-chip x-small label v-bind:key="key" v-for="value, key in item.selector" class="mr-2">{{key}}={{value}}</v-chip>
                </template>
+               <template v-slot:[`item.actions`]="{ item }">
+                    <v-btn x-small @click="describeDaemonSet(item)">描述</v-btn>
+                </template>
                <template v-slot:[`expanded-item`]="{ headers, item }">
                     <td></td><td></td>
                     <td :colspan="headers.length -1" >
@@ -30,27 +33,35 @@
                </template>
            </v-data-table>
         </v-col>
+        <DescribeDaemonSet :show.sync="showDescribeDialog" :daemonset.sync="selectDaemonset" />
     </v-row>
 </template>
 
 <script>
 import { DaemonsetTable } from '@/assets/app/tables';
 import TableRefreshBtn from '../plugins/TableRefreshBtn';
+import DescribeDaemonSet from './DescribeDaemonSet';
 
- export default {
+export default {
     components: {
-        TableRefreshBtn
+        TableRefreshBtn, DescribeDaemonSet
     },
     props: {
         namespace: String
     },
     data: () => ({
          table: new DaemonsetTable(),
+         showDescribeDialog: false,
+         selectDaemonset: null,
      }),
      methods: {
       refresh: async function() {
           this.table.refresh();
-       }
+       },
+       describeDaemonSet: function(item){
+            this.showDescribeDialog = true;
+            this.selectDaemonset = item.name;
+        }
     },
     created: async function () {
          this.refresh();

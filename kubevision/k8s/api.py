@@ -22,38 +22,17 @@ class ClientWrapper(object):
         self.apps_api = client.AppsV1Api()
 
     def list_namespace(self):
-        items = []
-        for obj in self.api.list_namespace().items:
-            items.append(objects.Namespace(
-                name=obj.metadata.name,
-                status=obj.status.phase,
-                labels=obj.metadata.labels or [],
-            ))
-        return items
+        return [
+            objects.Namespace.from_object(obj)
+            for obj in self.api.list_namespace().items
+        ]
 
-    def list_node(self, ns=constants.DEFAULT_NAMESPACE):
-        items = []
-        for obj in self.api.list_node().items:
-            # import pdb; pdb.set_trace()
-            items.append(objects.Node(
-                name=obj.metadata.name,
-                ready=self._get_node_ready_status(obj),
-                labels=obj.metadata.labels or [],
-                internal_ip=self._get_node_internal_ip(obj),
-                kernel_version=obj.status.node_info.kernel_version,
-                os_image=obj.status.node_info.os_image,
-                container_runtime_version=self._get_container_runtime_version(
-                    obj.status.node_info)
-            ))
-        return items
+    def list_node(self, node=None):
+        nodes = [self.get_node(node)] if node else self.api.list_node().items
+        return [objects.Node.from_object(node)for node in nodes]
 
     def get_node(self, name):
-        for obj in self.api.list_node().items:
-            if obj.metadata.name == name:
-                return obj
-
-    def replace_node(self, name, node):
-        self.api.replace_node(name, body=node)
+        return self.api.read_node(name)
 
     def delete_node_label(self, name, label):
         node = self.get_node(name)
@@ -84,25 +63,20 @@ class ClientWrapper(object):
                 return condition.status
 
     def _get_node_internal_ip(self, node):
-        for address in node.status.addresses or []:
-            if address.type == 'InternalIP':
-                return address.address
-        return None
+        return next(
+            (
+                address.address
+                for address in node.status.addresses or []
+                if address.type == 'InternalIP'
+            ),
+            None,
+        )
 
     def list_deploy(self, ns=constants.DEFAULT_NAMESPACE):
-        items = []
-        for obj in self.apps_api.list_namespaced_deployment(ns).items:
-            # import pdb;  pdb.set_trace()
-            items.append(objects.Deployment(
-                name=obj.metadata.name,
-                replicas=obj.status.replicas,
-                ready_replicas=obj.status.ready_replicas,
-                available_replicas=obj.status.available_replicas,
-                labels=obj.metadata.labels or [],
-                images=self._get_images(obj),
-                containers=self._get_containers(obj),
-            ))
-        return items
+        return [
+            objects.Deployment.from_object(obj)
+            for obj in self.apps_api.list_namespaced_deployment(ns).items
+        ]
 
     def _get_node_selector(self, daemonset: v1_daemon_set.V1DaemonSet):
         try:
@@ -118,36 +92,14 @@ class ClientWrapper(object):
             LOG.warn(e)
             return {}
 
-    def _get_images(self, deploy):
-        try:
-            return [cnt.image for cnt in deploy.spec.template.spec.containers]
-        except AttributeError as e:
-            LOG.warn(e)
-            return {}
-
-    def _get_containers(self, obj):
-        try:
-            return [cnt.name for cnt in obj.spec.template.spec.containers]
-        except AttributeError as e:
-            LOG.warn(e)
-            return []
-
     def list_daemonset(self, ns=constants.DEFAULT_NAMESPACE):
-        items = []
-        for obj in self.apps_api.list_namespaced_daemon_set(ns).items:
-            items.append(objects.DaemonSet(
-                name=obj.metadata.name,
-                number_ready=obj.status.number_ready,
-                number_available=obj.status.number_available,
-                current_number_scheduled=obj.status.current_number_scheduled,
-                desired_number_scheduled=obj.status.desired_number_scheduled,
-                labels=obj.metadata.labels or [],
-                node_selector=self._get_node_selector(obj),
-                selector=self._get_selector(obj),
-                images=self._get_images(obj),
-                containers=self._get_containers(obj),
-            ))
-        return items
+        return [
+            objects.DaemonSet.from_object(obj)
+            for obj in self.apps_api.list_namespaced_daemon_set(ns).items
+        ]
+
+    def get_daemonset(self, name, ns=constants.DEFAULT_NAMESPACE):
+        return self.apps_api.read_namespaced_daemon_set(name, ns)
 
     def list_pod(self, ns=constants.DEFAULT_NAMESPACE):
         items = []
@@ -157,12 +109,15 @@ class ClientWrapper(object):
         return items
 
 
-def init(kube_config):
+def init(kube_config: pathlib.Path):
     global CLIENT
 
-    if not pathlib.Path(kube_config).exists():
-        raise exceptions.KubeConfigNotExists(file=kube_config)
+    if isinstance(kube_config, str):
+        kube_config = pathlib.Path(kube_config)
 
-    config.kube_config.load_kube_config(config_file=kube_config)
+    if not kube_config.exists():
+        raise exceptions.KubeConfigNotExists(file=str(kube_config))
+
+    config.kube_config.load_kube_config(config_file=str(kube_config))
 
     CLIENT = ClientWrapper()

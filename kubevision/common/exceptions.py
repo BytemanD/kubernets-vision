@@ -21,3 +21,15 @@ class NodeLabelNotFound(exs.BaseException):
 
 class NodeLabelExists(exs.BaseException):
     _msg = 'Label {label} exists in {node}'
+
+
+class NodeLabelExists(exs.BaseException):
+    _msg = 'Label {label} exists in {node}'
+
+from tornado import web
+
+
+class ApiException(web.HTTPError):
+
+    def __init__(self, status, msg, reason=None):
+        super().__init__(status, msg, reason=reason)

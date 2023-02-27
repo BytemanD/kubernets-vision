@@ -1,13 +1,16 @@
 from pbr import version
 import functools
 import logging
-
 import requests
+
+from kubernetes.client import exceptions
 
 from easy2use.common import pkg
 
 from kubevision.common import constants
+from kubevision.common import exceptions as comm_exc
 from kubevision.common.i18n import _
+
 
 LOG = logging.getLogger(__name__)
 
@@ -81,6 +84,11 @@ def response(func):
     def wrapper(self, *args, **kwargs):
         try:
             resp = func(self, *args, **kwargs)
+        except exceptions.ApiException as e:
+            LOG.exception(e)
+            resp = e.status, e.body or e.reason
+        except comm_exc.ApiException as ex:
+            resp = ex.status_code, {'message': ex.log_message}
         except Exception as e:
             LOG.exception(e)
             resp = 500, f'Internal Server error: {str(e)}'

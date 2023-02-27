@@ -106,6 +106,7 @@ export class NodeTable extends DataTable {
                { text: '内网IP', value: 'internal_ip' },
                { text: '系统', value: 'os_image' },
                { text: '标签', value: 'labels' },
+               { text: '操作', value: 'actions' },
             ], API.node, 'nodes', '节点');
             this.extendItems = [
                    { text: '内核版本', value: 'kernel_version' },
@@ -142,6 +143,7 @@ export class DaemonsetTable extends DataTable {
                { text: 'node_selector', value: 'node_selector' },
                { text: 'selector', value: 'selector' },
                { text: 'containers', value: 'containers' },
+               { text: '操作', value: 'actions' },
             ], API.daemonset, 'daemonsets', '服务守护进程');
         this.extendItems = [
             { text: 'images', value: 'images' },

@@ -26,7 +26,9 @@
                             class="my-1 mr-1" @click:close="table.deleteLabel(item, key)">{{ key }}={{ value }}</v-chip>
                     </template>
                 </template>
-
+                <template v-slot:[`item.actions`]="{ item }">
+                    <v-btn x-small @click="describeNode(item)">描述</v-btn>
+                </template>
                 <template v-slot:[`expanded-item`]="{ headers, item }">
                     <td></td>
                     <td></td>
@@ -42,6 +44,7 @@
             </v-data-table>
         </v-col>
         <SetNodeLabel :show.sync="showSetDialog" :nodes.sync="table.selected" v-on:completed="updatedLabel" />
+        <DescribeNode :show.sync="showDescribeDialog" :node.sync="selectNode" />
     </v-row>
 </template>
 
@@ -49,14 +52,17 @@
 import { NodeTable } from '@/assets/app/tables';
 import TableRefreshBtn from '../plugins/TableRefreshBtn';
 import SetNodeLabel from './SetNodeLabel';
+import DescribeNode from './DescribeNode';
 
 export default {
     components: {
-        TableRefreshBtn, SetNodeLabel,
+        TableRefreshBtn, SetNodeLabel, DescribeNode
     },
     data: () => ({
         table: new NodeTable(),
         showSetDialog: false,
+        showDescribeDialog: false,
+        selectNode: null,
     }),
     methods: {
         refresh: async function () {
@@ -69,6 +75,10 @@ export default {
             } else {
                 this.$MESSAGE.error('添加失败');
             }
+        },
+        describeNode: function(node){
+            this.showDescribeDialog = true;
+            this.selectNode = node.name;
         }
     },
     created: async function () {

@@ -1,12 +1,16 @@
 import json
 import logging
+import yaml
 
 from tornado import web
 
 from kubevision.common import conf
 from kubevision.common import constants
+from kubevision.common import exceptions
+from kubernetes.client import exceptions as client_exc
 from kubevision.common import utils
 from kubevision.k8s import api
+from kubevision.k8s import objects
 
 LOG = logging.getLogger(__name__)
 CONF = conf.CONF
@@ -51,13 +55,43 @@ class BaseReqHandler(web.RequestHandler):
         LOG.debug('options request')
 
 
+class ObjectMixin(object):
+
+    @classmethod
+    def to_yaml(cls, obj):
+        obj_dict = obj.to_dict()
+        metadata = obj_dict.get('metadata')
+
+        if 'creation_timestamp' in metadata:
+            metadata['creation_timestamp'] = metadata.get('creation_timestamp').strftime('%Y-%m-%d %H:%M:%S')
+        if 'managed_fields' in metadata:
+            metadata['managed_fields'] = None
+
+        status = obj_dict.get('status')
+        if 'conditions' in status:
+            for condition in status.get('conditions') or []:
+                condition['last_heartbeat_time'] = condition.get('last_heartbeat_time').strftime('%Y-%m-%d %H:%M:%S')
+                condition['last_transition_time'] = condition.get('last_transition_time').strftime('%Y-%m-%d %H:%M:%S')
+
+        return yaml.dump(obj_dict)
+
+
 @registry_route(r'/node')
-class Node(BaseReqHandler):
+class Nodes(BaseReqHandler):
 
     @utils.response
     def get(self):
         items = api.CLIENT.list_node()
         return {'nodes': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/node/(.*)')
+class Node(BaseReqHandler, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        node = api.CLIENT.get_node(name)
+        return {'node': self.to_yaml(node)}
 
 
 @registry_route(r'/namespace')
@@ -79,13 +113,30 @@ class Deployment(BaseReqHandler):
 
 
 @registry_route(r'/daemonset')
-class Daemonset(BaseReqHandler):
+class Daemonsets(BaseReqHandler):
 
     @utils.response
     def get(self):
         LOG.info('namespace is %s', self._get_namespace())
         items = api.CLIENT.list_daemonset(ns=self._get_namespace())
         return {'daemonsets': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/daemonset/(.+)')
+class Daemonset(BaseReqHandler, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        daemonset = api.CLIENT.get_daemonset(name)
+        fmt = self.get_argument('format', 'json')
+        if not fmt or fmt == 'json':
+            result = objects.DaemonSet.from_object(daemonset).__dict__
+        elif fmt == 'yaml':
+            result = self.to_yaml(daemonset)
+        else:
+            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+
+        return {'daemonset': result}
 
 
 @registry_route(r'/pod')

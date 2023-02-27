@@ -1,4 +1,4 @@
-import os
+import pathlib
 
 
 NAME = 'KubeVision'
@@ -13,6 +13,6 @@ IMAGE_TAGS_API = f'https://hub.docker.com/v2/namespaces/{IMAGE_NAMESPACE}' \
 
 DEFAULT_NAMESPACE = 'default'
 
-DEFAULT_CONF_FILES = ['/etc/kubevision/kubevision.conf',
-                      os.path.join('etc', 'kubevision.conf')]
-DEFAULT_KUBE_CONFIG = os.path.join(os.getenv("HOME"), '.kube', 'config')
+DEFAULT_CONF_FILES = [pathlib.Path('/etc/kubevision/kubevision.conf'),
+                      pathlib.Path('etc', 'kubevision.conf')]
+DEFAULT_KUBE_CONFIG = pathlib.Path.home().joinpath('.kube/config')

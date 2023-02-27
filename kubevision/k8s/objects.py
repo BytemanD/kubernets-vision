@@ -1,4 +1,25 @@
+import logging
 from dataclasses import dataclass
+
+from kubernetes.client.models import v1_daemon_set
+
+LOG = logging.getLogger(__name__)
+
+
+def get_images(obj):
+    try:
+        return [cnt.image for cnt in obj.spec.template.spec.containers]
+    except AttributeError as e:
+        LOG.warn(e)
+        return {}
+
+
+def get_containers(obj):
+    try:
+        return [cnt.name for cnt in obj.spec.template.spec.containers]
+    except AttributeError as e:
+        LOG.warn(e)
+        return []
 
 
 @dataclass
@@ -11,12 +32,59 @@ class Node:
     os_image: str
     container_runtime_version: str
 
+    @classmethod
+    def get_container_runtime_version(cls, node_info):
+        return node_info.container_runtime_version
+
+    @classmethod
+    def get_node_ready_status(cls, node):
+        for condition in node.status.conditions or []:
+            if condition.type == 'Ready':
+                return condition.status
+
+    @classmethod
+    def get_node_internal_ip(cls, node):
+        return next(
+            (
+                address.address
+                for address in node.status.addresses or []
+                if address.type == 'InternalIP'
+            ),
+            None,
+        )
+
+    @classmethod
+    def get_containers(cls, obj):
+        try:
+            return [cnt.name for cnt in obj.spec.template.spec.containers]
+        except AttributeError as e:
+            LOG.warn(e)
+            return []
+
+    @classmethod
+    def from_object(cls, obj):
+        return cls(
+            name=obj.metadata.name,
+            ready=cls.get_node_ready_status(obj),
+            labels=obj.metadata.labels or [],
+            internal_ip=cls.get_node_internal_ip(obj),
+            kernel_version=obj.status.node_info.kernel_version,
+            os_image=obj.status.node_info.os_image,
+            container_runtime_version=cls.get_container_runtime_version(
+                obj.status.node_info)
+        )
+
 
 @dataclass
 class Namespace:
     name: str
     status: str
     labels: list
+
+    @classmethod
+    def from_object(cls, obj):
+        return cls(name=obj.metadata.name, status=obj.status.phase,
+                   labels=obj.metadata.labels or [])
 
 
 @dataclass
@@ -28,6 +96,18 @@ class Deployment:
     labels: list
     images: list
     containers: list
+
+    @classmethod
+    def from_object(cls, obj):
+        return cls(
+            name=obj.metadata.name,
+            replicas=obj.status.replicas,
+            ready_replicas=obj.status.ready_replicas,
+            available_replicas=obj.status.available_replicas,
+            labels=obj.metadata.labels or [],
+            images=get_images(obj),
+            containers=get_containers(obj),
+        )
 
 
 @dataclass
@@ -42,6 +122,37 @@ class DaemonSet:
     selector: dict
     images: list
     containers: list
+
+    @classmethod
+    def get_node_selector(cls, daemonset: v1_daemon_set.V1DaemonSet):
+        try:
+            return daemonset.spec.template.spec.node_selector
+        except AttributeError as e:
+            LOG.warn(e)
+            return {}
+
+    @classmethod
+    def get_selector(cls, daemonset: v1_daemon_set.V1DaemonSet):
+        try:
+            return daemonset.spec.selector.match_labels
+        except AttributeError as e:
+            LOG.warn(e)
+            return {}
+
+    @classmethod
+    def from_object(cls, obj):
+        return cls(
+            name=obj.metadata.name,
+            number_ready=obj.status.number_ready,
+            number_available=obj.status.number_available,
+            current_number_scheduled=obj.status.current_number_scheduled,
+            desired_number_scheduled=obj.status.desired_number_scheduled,
+            labels=obj.metadata.labels or [],
+            node_selector=cls.get_node_selector(obj),
+            selector=cls.get_selector(obj),
+            images=get_images(obj),
+            containers=get_containers(obj),
+        )
 
 
 @dataclass
@@ -62,13 +173,11 @@ class Pod:
         pod_ip = obj.status.pod_ip
         node_name = obj.spec.node_name
         node_selector = obj.spec.node_selector
-        containers = []
-        for container in obj.spec.containers:
-            containers.append({
-                'name': container.name,
-                'image': container.image,
-                'command': container.command
-            })
+        containers = [
+            {'name': container.name, 'image': container.image,
+             'command': container.command}
+            for container in obj.spec.containers
+        ]
         return Pod(name=name, labels=labels, node_name=node_name,
                    node_selector=node_selector, host_ip=host_ip,
                    pod_ip=pod_ip, containers=containers)

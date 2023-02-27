@@ -137,7 +137,7 @@ class Serve(cli.SubCli):
         cli.Arg('--kube-config',
                 default=constants.DEFAULT_KUBE_CONFIG,
                 help=f'{_("Kubernetes config file, default is")}: ' +
-                     constants.DEFAULT_KUBE_CONFIG),
+                     str(constants.DEFAULT_KUBE_CONFIG)),
     ]
 
     def __call__(self, args):
