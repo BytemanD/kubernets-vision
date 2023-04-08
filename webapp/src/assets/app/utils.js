@@ -96,4 +96,31 @@ export class Utils {
         }
         return dateList.reverse();
     }
+    static getConainerCmd(container){
+        let command = container.command ? container.command.join(' ') : ''
+        let args = container.args ? container.args.join(' ') : ''
+        return `${command} ${args}`
+    }
+    static getPodReadyNum(pod){
+        let nums = 0
+        for (let i in pod.container_statuses){
+            let status = pod.container_statuses[i];
+            if (status.ready){
+                nums += 1
+            }
+        }
+        return nums
+    }
+    static getPodWaiting(pod){
+        let waiting = {};
+        for (let i in pod.container_statuses){
+            let status = pod.container_statuses[i];
+            if (status.state.waiting){
+                waiting = status.state.waiting;
+                break;
+            }
+        }
+        return waiting;
+    }
+    
 }

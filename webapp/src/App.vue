@@ -3,13 +3,7 @@
 </template>
 
 <script>
-import axios from 'axios';
 import DashBoard from './components/DashBoard';
-
-
-axios.defaults.baseURL = 'http://kubevision.local';
-
-// Vue.prototype.$message = SimpleMessage.install;
 
 
 export default {

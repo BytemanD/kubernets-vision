@@ -1,4 +1,4 @@
-
+from tornado import web
 
 from easy2use.common import exceptions as exs
 
@@ -25,8 +25,6 @@ class NodeLabelExists(exs.BaseException):
 
 class NodeLabelExists(exs.BaseException):
     _msg = 'Label {label} exists in {node}'
-
-from tornado import web
 
 
 class ApiException(web.HTTPError):

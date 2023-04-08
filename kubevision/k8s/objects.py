@@ -16,10 +16,37 @@ def get_images(obj):
 
 def get_containers(obj):
     try:
-        return [cnt.name for cnt in obj.spec.template.spec.containers]
+        return [
+            {'name': cnt.name,
+             'command': cnt.command,
+             'args': cnt.args,
+             'image': cnt.image} for cnt in obj.spec.template.spec.containers
+        ]
     except AttributeError as e:
         LOG.warn(e)
         return []
+
+
+def get_container_state(container_state):
+    return {
+        'running': container_state.running != None,
+        'terminated': container_state.terminated != None,
+        'waiting': container_state.waiting.to_dict() if  container_state.waiting else None,
+    }
+    
+
+def get_container_statuses(obj):
+    container_statuses = []
+
+    for status in obj.status.container_statuses or []:
+        container_statuses.append({
+            'name': status.name,
+            'last_state': get_container_state(status.last_state),
+            'ready': status.ready,
+            'state': get_container_state(status.state)
+        })
+    # import pdb; pdb.set_trace()
+    return container_statuses
 
 
 @dataclass
@@ -101,9 +128,9 @@ class Deployment:
     def from_object(cls, obj):
         return cls(
             name=obj.metadata.name,
-            replicas=obj.status.replicas,
-            ready_replicas=obj.status.ready_replicas,
-            available_replicas=obj.status.available_replicas,
+            replicas=obj.status.replicas or 0,
+            ready_replicas=obj.status.ready_replicas or 0,
+            available_replicas=obj.status.available_replicas or 0,
             labels=obj.metadata.labels or [],
             images=get_images(obj),
             containers=get_containers(obj),
@@ -164,6 +191,7 @@ class Pod:
     host_ip: str
     pod_ip: str
     containers: list
+    container_statuses: list
 
     @classmethod
     def from_object(cls, obj):
@@ -178,6 +206,8 @@ class Pod:
              'command': container.command}
             for container in obj.spec.containers
         ]
+        container_statuses = get_container_statuses(obj)
         return Pod(name=name, labels=labels, node_name=node_name,
                    node_selector=node_selector, host_ip=host_ip,
-                   pod_ip=pod_ip, containers=containers)
+                   pod_ip=pod_ip, containers=containers,
+                   container_statuses=container_statuses)

@@ -19,6 +19,8 @@ class ClientWrapper(object):
 
     def __init__(self):
         self.api = client.CoreV1Api()
+        self.api_client = client.ApiClient()
+
         self.apps_api = client.AppsV1Api()
 
     def list_namespace(self):
@@ -31,8 +33,9 @@ class ClientWrapper(object):
         nodes = [self.get_node(node)] if node else self.api.list_node().items
         return [objects.Node.from_object(node)for node in nodes]
 
-    def get_node(self, name):
-        return self.api.read_node(name)
+    def get_node(self, name, ns=None):
+        return self.api.read_namespaced_pod(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
     def delete_node_label(self, name, label):
         node = self.get_node(name)
@@ -72,11 +75,15 @@ class ClientWrapper(object):
             None,
         )
 
-    def list_deploy(self, ns=constants.DEFAULT_NAMESPACE):
+    def list_deploy(self, ns=None):
         return [
             objects.Deployment.from_object(obj)
             for obj in self.apps_api.list_namespaced_deployment(ns).items
         ]
+
+    def get_deploy(self, name, ns=None):
+        return self.apps_api.read_namespaced_deployment(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
     def _get_node_selector(self, daemonset: v1_daemon_set.V1DaemonSet):
         try:
@@ -92,21 +99,46 @@ class ClientWrapper(object):
             LOG.warn(e)
             return {}
 
-    def list_daemonset(self, ns=constants.DEFAULT_NAMESPACE):
+    def list_daemonset(self, ns=None):
         return [
             objects.DaemonSet.from_object(obj)
             for obj in self.apps_api.list_namespaced_daemon_set(ns).items
         ]
 
-    def get_daemonset(self, name, ns=constants.DEFAULT_NAMESPACE):
-        return self.apps_api.read_namespaced_daemon_set(name, ns)
+    def get_daemonset(self, name, ns=None):
+        return self.apps_api.read_namespaced_daemon_set(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
-    def list_pod(self, ns=constants.DEFAULT_NAMESPACE):
-        items = []
-        for obj in self.api.list_namespaced_pod(ns).items:
-            LOG.info(obj)
-            items.append(objects.Pod.from_object(obj))
-        return items
+    def delete_daemonset(self, name, ns=None):
+        return self.apps_api.delete_namespaced_daemon_set(
+            name, ns or constants.DEFAULT_NAMESPACE)
+
+    def replace_daemonset(self, name, body, ns=None, **kwargs):
+        LOG.info('replace ds %s', name)
+        # self.apps_api.replace_namespaced_daemon_set(name, ns, body, **kwargs)
+        # import pdb; pdb.set_trace()
+        return self.apps_api.replace_namespaced_daemon_set(
+            name, ns or constants.DEFAULT_NAMESPACE, body,
+            **kwargs)
+
+    def patch_daemonset(self, name, body, ns=None, **kwargs):
+        LOG.info('patch ds %s', name)
+        self.apps_api.patch_namespaced_daemon_set(name, ns, body, field_manager='replace', force=True)
+        return self.apps_api.patch_namespaced_daemon_set(
+            name, ns or constants.DEFAULT_NAMESPACE, body,
+            **kwargs)
+
+    def list_pod(self, ns=None):
+        return [
+            objects.Pod.from_object(obj)
+            for obj in self.api.list_namespaced_pod(
+                ns or constants.DEFAULT_NAMESPACE
+            ).items
+        ]
+
+    def delete_pod(self, name, ns=None):
+        return self.api.delete_namespaced_pod(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
 
 def init(kube_config: pathlib.Path):

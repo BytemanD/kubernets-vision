@@ -51,7 +51,7 @@ class BaseReqHandler(web.RequestHandler):
         return self.get_argument('namespace', constants.DEFAULT_NAMESPACE)
 
     @utils.with_response(return_code=204)
-    def options(self):
+    def options(self, *args, **kwargs):
         LOG.debug('options request')
 
 
@@ -59,6 +59,8 @@ class ObjectMixin(object):
 
     @classmethod
     def to_yaml(cls, obj):
+        # TODO
+        # move this code to objects
         obj_dict = obj.to_dict()
         metadata = obj_dict.get('metadata')
 
@@ -70,10 +72,16 @@ class ObjectMixin(object):
         status = obj_dict.get('status')
         if 'conditions' in status:
             for condition in status.get('conditions') or []:
-                condition['last_heartbeat_time'] = condition.get('last_heartbeat_time').strftime('%Y-%m-%d %H:%M:%S')
-                condition['last_transition_time'] = condition.get('last_transition_time').strftime('%Y-%m-%d %H:%M:%S')
+                cls._format_time(condition, 'last_heartbeat_time')
+                cls._format_time(condition, 'last_transition_time')
 
         return yaml.dump(obj_dict)
+
+    @staticmethod
+    def _format_time(obj, key, str_format='%Y-%m-%d %H:%M:%S'):
+        if not hasattr(obj, key):
+            return
+        setattr(obj, key, getattr(obj, key).strftime(str_format))
 
 
 @registry_route(r'/node')
@@ -104,7 +112,7 @@ class Namespace(BaseReqHandler):
 
 
 @registry_route(r'/deployment')
-class Deployment(BaseReqHandler):
+class Deployments(BaseReqHandler):
 
     @utils.response
     def get(self):
@@ -122,6 +130,26 @@ class Daemonsets(BaseReqHandler):
         return {'daemonsets': [item.__dict__ for item in items]}
 
 
+@registry_route(r'/deployment/(.+)')
+class Deployment(BaseReqHandler, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        deploy = api.CLIENT.get_deploy(name, ns=self._get_namespace())
+        fmt = self.get_argument('format', 'json')
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+        if not fmt or fmt == 'json':
+            result = objects.Deployment.from_object(deploy).__dict__
+        elif fmt == 'yaml':
+            result = self.to_yaml(deploy)
+        return {'deployment': result}
+
+    @utils.with_response(return_code=204)
+    def delete(self, daemonset):
+        api.CLIENT.delete_daemonset(daemonset, ns=self._get_namespace())
+
+
 @registry_route(r'/daemonset/(.+)')
 class Daemonset(BaseReqHandler, ObjectMixin):
 
@@ -129,23 +157,81 @@ class Daemonset(BaseReqHandler, ObjectMixin):
     def get(self, name):
         daemonset = api.CLIENT.get_daemonset(name)
         fmt = self.get_argument('format', 'json')
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.ApiException(400, f'format {fmt} is invalid')
         if not fmt or fmt == 'json':
             result = objects.DaemonSet.from_object(daemonset).__dict__
         elif fmt == 'yaml':
             result = self.to_yaml(daemonset)
-        else:
-            raise exceptions.ApiException(400, f'format {fmt} is invalid')
-
         return {'daemonset': result}
+
+    @utils.with_response(return_code=204)
+    def delete(self, daemonset):
+        api.CLIENT.delete_daemonset(daemonset, ns=self._get_namespace())
+
+    @utils.with_response(return_code=202)
+    def put(self, daemonset):
+        """
+        body:
+        {
+            daemonset: {
+                containers: {
+                    <container name>: {
+                        name: <container name>,
+                        image: <image name>,
+                    }
+                }
+            }
+        }
+        """
+        data = self._get_body().get('daemonset', {})
+        force = data.get('force', False)
+        containers = data.get('containers', {})
+        ds = api.CLIENT.get_daemonset(daemonset, ns=self._get_namespace())
+        if containers:
+            for container in ds.spec.template.spec.containers:
+                new_image =  containers.get(container.name, {}).get('image')
+                if not new_image:
+                    continue
+                container.image = new_image
+                LOG.info('container %s new image: %s', container.name, container.image)
+
+        if force:
+            # TODO
+            api.CLIENT.replace_daemonset(daemonset, ds, ns=self._get_namespace(), _request_timeout=0)
+        else:
+            api.CLIENT.replace_daemonset(daemonset, ds, ns=self._get_namespace())
+        return {}
 
 
 @registry_route(r'/pod')
-class Pod(BaseReqHandler):
+class Pods(BaseReqHandler):
 
     @utils.response
     def get(self):
         items = api.CLIENT.list_pod(ns=self._get_namespace())
         return {'pods': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/pod/(.+)')
+class Pod(BaseReqHandler, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        pod = api.CLIENT.get_node(name, ns=self._get_namespace())
+        fmt = self.get_argument('format', 'json')
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+        if not fmt or fmt == 'json':
+            result = objects.Pod.from_object(pod).__dict__
+        elif fmt == 'yaml':
+            result = self.to_yaml(pod)
+        return {'pod': result}
+
+    @utils.with_response(return_code=204)
+    def delete(self, daemonset):
+        LOG.debug('options request')
+        api.CLIENT.delete_daemonset(daemonset, ns=self._get_namespace())
 
 
 @registry_route(r'/action')

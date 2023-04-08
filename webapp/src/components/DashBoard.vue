@@ -1,6 +1,7 @@
 <template>
   <v-app>
-    <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant" :dark="ui.dark">
+    <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant" :dark="ui.dark"
+      width="200">
       <v-list-item two-line class="px-2">
         <v-list-item-avatar class="ml-0" tile><img src="../../public/favicon.svg"></v-list-item-avatar>
         <v-list-item-content>
@@ -8,35 +9,36 @@
         </v-list-item-content>
       </v-list-item>
       <v-list shaped dense>
-        <v-subheader><h3>资源</h3></v-subheader>
-        <v-list-item-group v-model="navigation.item" color="primary">
-          <v-list-item link active v-bind:key="i" v-for='(item, i) in navigation.items'>
-            <v-list-item-icon><v-icon>{{ item.icon }}</v-icon></v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>{{ item.title }}</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
+        <v-list-item-group v-model="navigation.itemIndex" color="primary">
+          <template v-for="group in navigation.group">
+            <template>
+              <v-subheader v-bind:key="group.name">
+                <h3 class="primary--text">{{ group.name }}</h3><v-divider></v-divider>
+              </v-subheader>
+              <v-list-item v-for="item in group.items" v-bind:key="item.router"
+                :disabled="navigation.selectedItem.router == item.router" @click="selectItem(item)">
+                <v-list-item-icon><v-icon>{{ item.icon }}</v-icon></v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </template>
+          </template>
         </v-list-item-group>
       </v-list>
-      <!-- miniVariant -->
     </v-navigation-drawer>
     <v-app-bar app dense :dark="ui.dark">
       <v-app-bar-nav-icon @click="miniVariant = !miniVariant"></v-app-bar-nav-icon>
       <v-toolbar-title class="ml-1" style="width: 30%">
-        <v-select solo-inverted flat hide-details :items="namespaceTable.items" prefix='命名空间:' class="rounded-0" item-text="name" v-model="namespace">
+        <v-select solo-inverted flat hide-details :items="namespaceTable.items" prefix='命名空间:' class="rounded-0"
+          item-text="name" v-model="namespace">
         </v-select>
       </v-toolbar-title>
       <v-spacer></v-spacer>
     </v-app-bar>
     <v-main>
       <v-container fluid>
-        <v-row hidden>
-          <v-col cols="12" :hidden="navigation.items[navigation.item].title != '节点'"><NodePage /></v-col>
-          <v-col cols="12" :hidden="navigation.items[navigation.item].title != '命名空间'"><NameSpace /></v-col>
-          <v-col cols="12" :hidden="navigation.items[navigation.item].title != '服务守护进程'"><DaemonSet :namespace.sync="namespace" /></v-col>
-          <v-col cols="12" :hidden="navigation.items[navigation.item].title != 'Deployment'"><DeploymentPage :namespace.sync="namespace" /></v-col>
-          <v-col cols="12" :hidden="navigation.items[navigation.item].title != 'Pod'"><PodPage :namespace.sync="namespace" /></v-col>
-        </v-row>
+        <router-view></router-view>
       </v-container>
     </v-main>
   </v-app>
@@ -45,23 +47,27 @@
 <script>
 import { NamespaceTable } from '@/assets/app/tables';
 
-import NodePage from './dashboard/NodePage';
-import NameSpace from './dashboard/NameSpace';
-import DaemonSet from './dashboard/DaemonSet';
-import DeploymentPage from './dashboard/DeploymentPage';
-import PodPage from './dashboard/PodPage';
-
-// Edit v-container if edit navigationItems.
-const navigationItems = [
-  { title: '节点', icon: 'mdi-server', group: '资源' },
-  { title: '命名空间', icon: 'mdi-alpha-n-circle', },
-  { title: '服务守护进程', icon: 'mdi-alpha-s-circle' },
-  { title: 'Deployment', icon: 'mdi-alpha-d-circle' },
-  { title: 'Pod', icon: 'mdi-alpha-p-circle' },
+const navigationGroup = [
+  {
+    name: '系统',
+    items: [
+      { title: '命名空间', icon: 'mdi-alpha-n-circle', router: '/namespace' },
+      { title: '节点', icon: 'mdi-server', router: '/node' },
+    ]
+  },
+  {
+    name: '资源',
+    items: [
+      { title: '服务守护进程', icon: 'mdi-alpha-s-circle', router: '/daemonset' },
+      { title: 'Deployment', icon: 'mdi-alpha-d-circle', router: '/deployment' },
+      { title: 'Pod', icon: 'mdi-alpha-p-circle', router: '/pod' },
+    ]
+  },
 ]
+
 export default {
   components: {
-    NodePage, NameSpace, DaemonSet, DeploymentPage, PodPage
+    
   },
 
   data: () => ({
@@ -72,16 +78,47 @@ export default {
       navigationWidth: '200px'
     },
     navigation: {
-      item: 0,
-      items: navigationItems,
+      itemIndex: 0,
+      selectedItem: {},
+      group: navigationGroup,
     },
     namespaceTable: new NamespaceTable(),
     namespace: 'default'
   }),
   methods: {
-
+    initItem() {
+      let itemIndex = -1;
+      for (let groupIndex in this.navigation.group) {
+        let group = this.navigation.group[groupIndex];
+        for (let itemIndx in group.items) {
+          let item = group.items[itemIndx];
+          itemIndex += 1;
+          if (this.$route.path != item.router) { continue }
+          this.selectItem(item);
+          this.navigation.itemIndex = itemIndex;
+          return;
+        }
+      }
+    },
+    selectItem(item) {
+      localStorage.setItem('navigationSelectedItem', JSON.stringify(item));
+      this.navigation.selectedItem = item;
+      if (this.$route.path == '/' || this.$route.path != item.router) {
+        this.$router.replace({ path: item.router });
+      }
+    },
   },
   created() {
+    if (this.$route.path == '/') {
+      let localItem = localStorage.getItem('navigationSelectedItem');
+      if (localItem) {
+        this.selectItem(JSON.parse(localItem));
+      } else {
+        this.selectItem(navigationGroup[0].items[0]);
+      }
+    } else {
+      this.initItem();
+    }
     this.namespaceTable.refresh();
   }
 };

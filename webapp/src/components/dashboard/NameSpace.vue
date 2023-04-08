@@ -8,7 +8,7 @@
         <TableRefreshBtn :table="table" />
     </v-col>
     <v-col cols="12">
-      <v-data-table dense :headers="table.headers" :items="table.items" item-key="name"
+      <v-data-table dense :headers="table.headers" :loading="table.refreshing"  :items="table.items" item-key="name"
         :items-per-page="table.itemsPerPage" :search="table.search"
         show-select v-model="table.selected" show-expand single-expand>
         <template v-slot:[`item.labels`]="{ item }">

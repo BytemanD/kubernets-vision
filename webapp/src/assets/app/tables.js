@@ -1,6 +1,6 @@
 import API from './api.js'
+import MESSAGE from './message.js';
 import { Utils } from './utils';
-import { Notify } from "vuetify-message-snackbar";
 
 export class DataTable {
     constructor(headers, api, bodyKey = null, name = '') {
@@ -33,17 +33,17 @@ export class DataTable {
         if (this.selected.length == 0) {
             return;
         }
-        this.$MESSAGE.info(`${this.name} 删除中`)
+        MESSAGE.info(`${this.name} 删除中`)
         for (let i in this.selected) {
             let item = this.selected[i];
             try {
                 await this.api.delete(item.id || item.name);
                 this.waitDeleted(item.id || item.name);
             } catch {
-                this.$MESSAGE.error(`删除 ${this.name} ${item.id} 失败`)
+                MESSAGE.error(`删除 ${this.name} ${item.id} 失败`)
             }
         }
-        this.$MESSAGE.success('删除完成');
+
         this.refresh();
         this.resetSelected();
     }
@@ -59,6 +59,7 @@ export class DataTable {
             }
             await Utils.sleep(5);
         }
+        MESSAGE.success('删除完成');
     }
     resetSelected() {
         this.selected = [];
@@ -105,7 +106,6 @@ export class NodeTable extends DataTable {
                { text: 'Ready', value: 'ready' },
                { text: '内网IP', value: 'internal_ip' },
                { text: '系统', value: 'os_image' },
-               { text: '标签', value: 'labels' },
                { text: '操作', value: 'actions' },
             ], API.node, 'nodes', '节点');
             this.extendItems = [
@@ -121,7 +121,7 @@ export class NodeTable extends DataTable {
     }
     async deleteLabel(item, label){
         await API.action.post({deleteLabel: {kind: 'node', name: item.name, label: label}});
-        Notify.success(`标签 ${label} 删除成功`)
+        MESSAGE.success(`标签 ${label} 删除成功`)
         this.refresh();
     }
 }
@@ -136,17 +136,18 @@ export class NamespaceTable extends DataTable {
 export class DaemonsetTable extends DataTable {
     constructor() {
         super([{ text: '名字', value: 'name' },
-               { text: 'Ready', value: 'number_ready' },
+               { text: 'Ready', value: 'ready' },
                { text: 'available', value: 'number_available' },
                { text: 'current', value: 'current_number_scheduled' },
-               { text: 'desired', value: 'desired_number_scheduled' },
+            //    { text: 'Ready', value: 'number_ready' },
+            //    { text: 'desired', value: 'desired_number_scheduled' },
                { text: 'node_selector', value: 'node_selector' },
                { text: 'selector', value: 'selector' },
                { text: 'containers', value: 'containers' },
                { text: '操作', value: 'actions' },
             ], API.daemonset, 'daemonsets', '服务守护进程');
         this.extendItems = [
-            { text: 'images', value: 'images' },
+            
         ];
     }
 }
@@ -156,10 +157,10 @@ export class DeploymentTable extends DataTable {
                { text: 'Ready', value: 'ready' },
                { text: 'available', value: 'available_replicas' },
                { text: 'containers', value: 'containers' },
-          
+               { text: '操作', value: 'actions' },
         ], API.deployment, 'deployments', '服务守护进程');
         this.extendItems = [
-            { text: 'images', value: 'images' },
+            // { text: 'images', value: 'images' },
         ];
     }
 }
@@ -167,15 +168,22 @@ export class PodTable extends DataTable {
     constructor() {
         super([
             { text: '名字', value: 'name' },
+            { text: 'Ready', value: 'ready' },
+            { text: '状态', value: 'state' },
             { text: 'node_name', value: 'node_name' },
             { text: 'pod_ip', value: 'pod_ip' },
             { text: 'containers', value: 'containers' },
+            { text: '操作', value: 'actions' },
         ], API.pod, 'pods', 'Pod');
         this.extendItems = [
             { text: 'labels', value: 'labels' },
             { text: 'node_selector', value: 'node_selector' },
             { text: 'containers', value: 'containers' },
         ];
+        this.waiting = {};
+    }
+    updateWaiting(pod){
+        this.waiting[pod.name] = Utils.getPodWaiting(pod);
     }
 }
 
