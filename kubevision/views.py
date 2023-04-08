@@ -32,6 +32,15 @@ def registry_route(url):
 
 class BaseReqHandler(web.RequestHandler):
 
+    def set_default_headers(self):
+        super().set_default_headers()
+        if CONF.enable_cross_domain:
+            self.set_header('Access-Control-Allow-Origin', '*')
+            self.set_header('Access-Control-Allow-Headers', '*')
+            self.set_header('Access-Control-Allow-Max-Age', 1000)
+            self.set_header('Access-Control-Allow-Methods',
+                            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+
     def return_resp(self, status, data):
         self.set_status(status)
         self.finish(data)
@@ -82,6 +91,38 @@ class ObjectMixin(object):
         if not hasattr(obj, key):
             return
         setattr(obj, key, getattr(obj, key).strftime(str_format))
+
+
+@registry_route(r'/')
+class Index(BaseReqHandler):
+
+    def get(self):
+        if CONF.index_redirect:
+            self.redirect(CONF.index_redirect)
+        else:
+            self.redirect('index.html')
+
+
+@registry_route(r'/.+\.html')
+class Html(BaseReqHandler):
+
+    def get(self):
+        try:
+            self.render(self.request.path[1:])
+        except FileNotFoundError:
+            self.set_status(404)
+            self.finish({'error': f'{self.request.path[1:]} not found'})
+
+
+@registry_route(r'/config.json')
+class ConfigJson(BaseReqHandler):
+
+    def get(self):
+        try:
+            self.render(self.request.path[1:])
+        except FileNotFoundError:
+            self.set_status(404)
+            self.finish({'error': f'{self.request.path[1:]} not found'})
 
 
 @registry_route(r'/node')

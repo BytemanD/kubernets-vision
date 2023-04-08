@@ -33,9 +33,8 @@ class ClientWrapper(object):
         nodes = [self.get_node(node)] if node else self.api.list_node().items
         return [objects.Node.from_object(node)for node in nodes]
 
-    def get_node(self, name, ns=None):
-        return self.api.read_namespaced_pod(
-            name, ns or constants.DEFAULT_NAMESPACE)
+    def get_node(self, name):
+        return self.api.read_node(name)
 
     def delete_node_label(self, name, label):
         node = self.get_node(name)

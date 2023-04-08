@@ -15,4 +15,4 @@ DEFAULT_NAMESPACE = 'default'
 
 DEFAULT_CONF_FILES = [pathlib.Path('/etc/kubevision/kubevision.conf'),
                       pathlib.Path('etc', 'kubevision.conf')]
-DEFAULT_KUBE_CONFIG = pathlib.Path.home().joinpath('.kube/config')
+DEFAULT_KUBE_CONFIG = pathlib.Path.home().joinpath('.kube', 'config')

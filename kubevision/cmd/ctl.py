@@ -3,6 +3,7 @@ import mimetypes
 import os
 import sys
 import subprocess
+import pathlib
 
 from easy2use.downloader.urllib import driver
 from easy2use.globals import cli
@@ -134,10 +135,12 @@ class Serve(cli.SubCli):
                 help=_("Run serve with develop mode")),
         cli.Arg('--container', action='store_true',
                 help=_("Run serve with docker container")),
-        cli.Arg('--kube-config',
-                default=constants.DEFAULT_KUBE_CONFIG,
-                help=f'{_("Kubernetes config file, default is")}: ' +
-                     str(constants.DEFAULT_KUBE_CONFIG)),
+        cli.Arg('--static', default='webapp/dist/static',
+                help=_("The path of static directory")),
+        cli.Arg('--template', default='webapp/dist',
+                help=_("The path of template directory")),
+        cli.Arg('-c', '--enale-cross-domain', action='store_true',
+                help=_("Enable cross domain")),
     ]
 
     def __call__(self, args):
@@ -147,14 +150,20 @@ class Serve(cli.SubCli):
             # 'text/plain', so add this type before start http server.
             mimetypes.add_type('application/javascript', '.js')
 
-        conf.load_configs()
-        api.init(args.kube_config)
+        if args.enale_cross_domain:
+            CONF.enable_cross_domain = True
 
-        template_path = os.path.join(ROOT, 'templates')
-        static_path = os.path.join(ROOT, 'static')
+        if not pathlib.Path(args.static).exists():
+            LOG.warning('static path %s not exists.', args.static)
+        if not pathlib.Path(args.template).exists():
+            LOG.warning('template path %s not exists.', args.template)
+
+        conf.load_configs()
+        api.init(CONF.k8s.kube_config)
+
         app = KubeVisionApp(views.get_routes(), develop=args.develop,
-                            template_path=template_path,
-                            static_path=static_path)
+                            template_path=args.template,
+                            static_path=args.static)
         app.start(port=args.port or CONF.port,
                   num_processes=CONF.workers)
 

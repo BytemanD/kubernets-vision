@@ -58,7 +58,7 @@ const navigationGroup = [
   {
     name: '资源',
     items: [
-      { title: '服务守护进程', icon: 'mdi-alpha-s-circle', router: '/daemonset' },
+      { title: 'DaemonSet', icon: 'mdi-alpha-s-circle', router: '/daemonset' },
       { title: 'Deployment', icon: 'mdi-alpha-d-circle', router: '/deployment' },
       { title: 'Pod', icon: 'mdi-alpha-p-circle', router: '/pod' },
     ]

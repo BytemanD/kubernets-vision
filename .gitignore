@@ -130,3 +130,8 @@ dmypy.json
 
 # npm dev files
 node_modules
+
+install/*.whl
+install/*.ico
+install/requirements.txt
+install/kubevision

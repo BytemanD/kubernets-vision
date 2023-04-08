@@ -1,0 +1,9 @@
+CHANGES
+=======
+
+* 支持替换daemonset,显示pod状态等
+* 支持查看node,daemonset描述信息
+* UI优化、删除多余文件
+* 修改logo、添加Notify组件、Pod显示更多信息
+* 支持node,ns,deploy,daemonset,pod
+* Initial commit

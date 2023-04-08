@@ -1,6 +1,7 @@
 import os
 import socket
 import logging
+import pathlib
 
 from easy2use.globals import cfg
 from kubevision.common import constants
@@ -17,7 +18,12 @@ default_options = [
     cfg.IntOption('port', default=8091),
     cfg.IntOption('workers', default=None),
     cfg.Option('data_path', default='/etc/kubevision'),
-    cfg.Option('inventory', default='/etc/kubevision/hosts')
+    cfg.BooleanOption('enable_cross_domain', default=False),
+    cfg.Option('index_redirect', default='/index.html'),
+]
+
+k8s_options = [
+    cfg.Option('kube_config', default=constants.DEFAULT_KUBE_CONFIG),
 ]
 
 
@@ -33,3 +39,4 @@ def load_configs():
 
 
 CONF.register_opts(default_options)
+CONF.register_opts(k8s_options, group='k8s')
