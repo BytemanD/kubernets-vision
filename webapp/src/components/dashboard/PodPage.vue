@@ -49,9 +49,9 @@
                     <v-list-item @click="describeResource(item)">
                         <v-list-item-title>描述</v-list-item-title>
                     </v-list-item>
-                    <!-- <v-list-item @click="replaceResource(item)">
-                        <v-list-item-title class="orange--text">替换</v-list-item-title>
-                    </v-list-item> -->
+                    <v-list-item @click="openPodLogsDialog(item)">
+                        <v-list-item-title>日志</v-list-item-title>
+                    </v-list-item>
                 </v-list>
             </v-menu>
         </template>
@@ -69,7 +69,8 @@
         </template>
       </v-data-table>
     </v-col>
-    <DescribeResource :show.sync="showDescribeDialog" resource-name='pod' :resource.sync="selectResource" />
+    <DescribeResource :show.sync="showDescribeDialog" resource-name='pod' :resource="selectResource.name" />
+    <PogLogs :show.sync="showPodLogsDialog" :pod="selectResource" />
   </v-row>
 </template>
 <script>
@@ -78,42 +79,37 @@ import { PodTable } from '@/assets/app/tables';
 
 import TableRefreshBtn from '../plugins/TableRefreshBtn';
 import DescribeResource from './dialogs/DescribeResource.vue';
-
+import PogLogs from './dialogs/PogLogs.vue';
 
 export default {
   components: {
-    TableRefreshBtn, DescribeResource,
+    TableRefreshBtn, DescribeResource, PogLogs,
   },
   data: () => ({
     Utils: Utils,
     table: new PodTable(),
     showDescribeDialog: false,
-    selectResource: null,
+    selectResource: {},
+    showPodLogsDialog: false,
   }),
-  props: {
-    namespace: String
-  },
   methods: {
     refresh: async function () {
       this.table.refresh();
     },
     describeResource: function (item) {
-        this.showDescribeDialog = !this.showDescribeDialog;
-        this.selectResource = item.name;
+      this.selectResource = item;
+      this.showDescribeDialog = !this.showDescribeDialog;
     },
-    // replaceResource: function (item) {
-    //     this.showReplaceDialog = !this.showReplaceDialog;
-    //     this.selectedItem = item;
-    // }
+    openPodLogsDialog: function (item) {
+        this.selectResource = item;
+        this.showPodLogsDialog = !this.showPodLogsDialog;
+    }
   },
   created: async function () {
     this.table.refresh();
   },
   watch: {
-    namespace(newValue) {
-      this.table.namespace = newValue;
-      this.table.refresh();
-    }
+
   }
 
 };

@@ -291,6 +291,19 @@ class Pod(BaseReqHandler, ObjectMixin):
         LOG.debug('options request')
         api.CLIENT.delete_pod(name, ns=self._get_namespace())
 
+@registry_route(r'/logs/(.+)')
+class Logs(BaseReqHandler, ObjectMixin):
+
+    @utils.with_response(return_code=200)
+    def get(self, name):
+        container = self.get_argument('container')
+        params = {}
+        if container:
+            params['container'] = container
+        logs = api.CLIENT.get_pod_logs(name, ns=self._get_namespace(),
+                                       **params)
+        return {'logs': logs}
+
 
 @registry_route(r'/action')
 class Action(BaseReqHandler):

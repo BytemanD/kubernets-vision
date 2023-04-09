@@ -149,8 +149,14 @@ class ClientWrapper(object):
         return self.api.delete_namespaced_pod(
             name, ns or constants.DEFAULT_NAMESPACE)
 
+    def get_pod_logs(self, name, ns=None, **kwargs):
+        return self.api.read_namespaced_pod_log(
+            name, ns or constants.DEFAULT_NAMESPACE,
+            **kwargs)
+
 
 def init(kube_config: pathlib.Path):
+    # sourcery skip: instance-method-first-arg-name
     global CLIENT
 
     if isinstance(kube_config, str):

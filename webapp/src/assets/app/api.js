@@ -93,12 +93,27 @@ class Deployment extends Restfulclient {
 class Pod extends Restfulclient {
     constructor() { super('/pod') }
 }
+class Logs extends Restfulclient {
+    constructor() { super('/logs') }
+    async get(podName, container=null){
+        let filters = {}
+        if (container){
+            filters.container = container;
+        }
+        let url = `${podName}`;
+        if (Object.keys(filters).length > 0){
+            url = `${url}?${this._parseToQueryString(filters)}`;
+        }
+        return (await super.get(url)).logs
+    }
+}
 class Action extends Restfulclient {
     constructor() { super('/action') }
 }
 class Version extends Restfulclient {
     constructor() { super('/version') }
 }
+
 export class Api {
     constructor() {
         this.namespace = new Namespace();
@@ -108,6 +123,7 @@ export class Api {
         this.pod = new Pod();
         this.action = new Action();
         this.version = new Version();
+        this.logs = new Logs();
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});
