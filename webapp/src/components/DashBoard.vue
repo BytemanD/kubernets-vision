@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant" :dark="ui.dark"
+    <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant"
       width="200">
       <v-list-item two-line class="px-2">
         <v-list-item-avatar class="ml-0" tile><img src="../../public/favicon.svg"></v-list-item-avatar>
@@ -27,14 +27,16 @@
         </v-list-item-group>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar app dense :dark="ui.dark">
+    <v-app-bar app dense>
       <v-app-bar-nav-icon @click="miniVariant = !miniVariant"></v-app-bar-nav-icon>
-      <v-toolbar-title class="ml-1" style="width: 30%">
+      <v-toolbar-title class="ml-1" style="width: 300px">
         <v-select solo-inverted flat hide-details :items="namespaceTable.items" prefix='命名空间:' class="rounded-0"
-          item-text="name" v-model="namespace">
+          item-text="name" v-model="namespace" v-on:change="setNamespace()">
         </v-select>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <BtnTheme />
+      <BtnAbout />
     </v-app-bar>
     <v-main>
       <v-container fluid>
@@ -46,6 +48,9 @@
 
 <script>
 import { NamespaceTable } from '@/assets/app/tables';
+import BtnTheme from './plugins/BtnTheme.vue';
+import BtnAbout from './plugins/BtnAbout.vue';
+import { Utils } from '@/assets/app/utils';
 
 const navigationGroup = [
   {
@@ -67,14 +72,13 @@ const navigationGroup = [
 
 export default {
   components: {
-    
+    BtnTheme, BtnAbout
   },
 
   data: () => ({
     name: 'KubeVision',
     miniVariant: false,
     ui: {
-      dark: true,
       navigationWidth: '200px'
     },
     navigation: {
@@ -107,8 +111,13 @@ export default {
         this.$router.replace({ path: item.router });
       }
     },
+    setNamespace(){
+      Utils.setNamespace(this.namespace);
+      location.reload();
+    }
   },
   created() {
+    this.namespace = Utils.getNamespace();
     if (this.$route.path == '/') {
       let localItem = localStorage.getItem('navigationSelectedItem');
       if (localItem) {

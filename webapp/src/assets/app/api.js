@@ -1,4 +1,5 @@
 import axios from 'axios';
+import MESSAGE from './message';
 
 class Restfulclient {
     constructor(baseUrl) {
@@ -29,8 +30,13 @@ class Restfulclient {
     }
     async get(url=null) {
         let reqUrl = url ? `${this.baseUrl}/${url}` : this.baseUrl;
-        let resp = await axios.get(reqUrl);
-        return resp.data
+        try {
+            let resp = await axios.get(reqUrl);
+            return resp.data;
+        } catch (error){
+            MESSAGE.error(`请求失败 ${error.message}`)
+            throw error
+        }
     }
     async delete(id) { let resp = await axios.delete(`${this.baseUrl}/${id}`) ; return resp.data }
     async post(body, url=null) {
@@ -47,8 +53,13 @@ class Restfulclient {
         let queryString = this._parseToQueryString(filters);
         let url = this.baseUrl;
         if (queryString) { url += `?${queryString}` }
-        let resp = await axios.get(`${url}`);
-        return resp.data;
+        try{
+            let resp = await axios.get(`${url}`);
+            return resp.data;
+        } catch (error){
+            MESSAGE.error(`请求失败 ${error.message}`)
+            throw error;
+        }
     }
     async patch(id, body, headers={}){
         let config = {};
@@ -85,6 +96,9 @@ class Pod extends Restfulclient {
 class Action extends Restfulclient {
     constructor() { super('/action') }
 }
+class Version extends Restfulclient {
+    constructor() { super('/version') }
+}
 export class Api {
     constructor() {
         this.namespace = new Namespace();
@@ -93,6 +107,7 @@ export class Api {
         this.deployment = new Deployment();
         this.pod = new Pod();
         this.action = new Action();
+        this.version = new Version();
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});

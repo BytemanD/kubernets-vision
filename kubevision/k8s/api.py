@@ -28,6 +28,8 @@ class ClientWrapper(object):
             objects.Namespace.from_object(obj)
             for obj in self.api.list_namespace().items
         ]
+    def get_namespace(self, name):
+        return self.api.read_namespace(name)
 
     def list_node(self, node=None):
         nodes = [self.get_node(node)] if node else self.api.list_node().items

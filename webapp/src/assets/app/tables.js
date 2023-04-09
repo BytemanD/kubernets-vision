@@ -16,7 +16,9 @@ export class DataTable {
         this.selected = []
         this.extendItems = []
         this.newItemDialog = null;
-        this.namespace = 'default';
+    }
+    getNamespace(){
+        return Utils.getNamespace();
     }
     async openNewItemDialog(){
         if (this.newItemDialog){
@@ -77,8 +79,8 @@ export class DataTable {
     }
     async refresh(filters = {}) {
         let result = null
-        if (this.namespace){
-            filters.namespace = this.namespace
+        if (!filters.namespace){
+            filters.namespace = this.getNamespace()
         }
         try {
             this.refreshing = true;
@@ -90,7 +92,6 @@ export class DataTable {
             this.items = this.bodyKey ? result[this.bodyKey] : result;
             return result;
         } catch (e) {
-            this.$MESSAGE.error('请求失败')
             console.error(e);
         } finally {
             this.refreshing = false;
@@ -130,6 +131,7 @@ export class NamespaceTable extends DataTable {
         super([{ text: '名字', value: 'name' },
                { text: '状态', value: 'status' },
                { text: '标签', value: 'labels' },
+               { text: '操作', value: 'actions' },
               ], API.namespace, 'namespaces', '命名空间');
     }
 }

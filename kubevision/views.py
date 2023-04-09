@@ -125,6 +125,14 @@ class ConfigJson(BaseReqHandler):
             self.finish({'error': f'{self.request.path[1:]} not found'})
 
 
+@registry_route(r'/version')
+class ConfigJson(BaseReqHandler):
+
+    @utils.with_response()
+    def get(self):
+        return {'version': {'backend': utils.get_version()}}
+
+
 @registry_route(r'/node')
 class Nodes(BaseReqHandler):
 
@@ -144,12 +152,28 @@ class Node(BaseReqHandler, ObjectMixin):
 
 
 @registry_route(r'/namespace')
-class Namespace(BaseReqHandler):
+class Namespaces(BaseReqHandler):
 
     @utils.response
     def get(self):
         namespaces = api.CLIENT.list_namespace()
         return {'namespaces': [item.__dict__ for item in namespaces]}
+
+
+@registry_route(r'/namespace/(.+)')
+class Namespace(BaseReqHandler, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        namespace = api.CLIENT.get_namespace(name)
+        fmt = self.get_argument('format', 'json')
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+        if not fmt or fmt == 'json':
+            result = objects.Namespace.from_object(namespace).__dict__
+        elif fmt == 'yaml':
+            result = self.to_yaml(namespace)
+        return {'namespace': result}
 
 
 @registry_route(r'/deployment')

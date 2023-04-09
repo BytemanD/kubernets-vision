@@ -1,8 +1,7 @@
 <template>
     <v-dialog v-model="display" width="1000" scrollable>
         <v-card>
-            <v-card-title class="headline primary" primary-title>{{resourceName}}: {{ resource }}</v-card-title>
-            <v-card-text><pre>{{ yaml }}</pre></v-card-text>
+           关于
         </v-card>
     </v-dialog>
 </template>
@@ -11,14 +10,13 @@
 import API from '@/assets/app/api';
 
 export default {
-    props: {
-        show: Boolean,
-        resourceName: String,
-        resource: String,
-    },
+    // props: {
+    //     show: Boolean,
+    //     resourceName: String,
+    //     resource: String,
+    // },
     data: () => ({
         display: false,
-        yaml: ''
     }),
     methods: {
         describeResource: async function(){

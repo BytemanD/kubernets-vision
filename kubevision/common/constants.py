@@ -1,7 +1,7 @@
 import pathlib
 
 
-NAME = 'KubeVision'
+NAME = 'kubevision'
 
 AUTH = 'fjboy'
 REPO = 'kube-vision'

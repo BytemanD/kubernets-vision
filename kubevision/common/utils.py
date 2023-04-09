@@ -125,3 +125,8 @@ def with_response(return_code=200):
         return wrapper
 
     return _response
+
+
+def get_version():
+    info = version.VersionInfo(constants.NAME)
+    return info.release_string()

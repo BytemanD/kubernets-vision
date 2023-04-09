@@ -2,6 +2,10 @@ const KB = 1024;
 const MB = KB * 1024;
 const GB = MB * 1024;
 
+const namespaceItem = 'namespace';
+const defaultNamespace = 'default';
+
+
 export class Utils {
 
     static nowFormat(dateObject=null) {
@@ -122,5 +126,12 @@ export class Utils {
         }
         return waiting;
     }
-    
+
+    static getNamespace(){
+        return sessionStorage.getItem(namespaceItem) || defaultNamespace;
+    }
+    static setNamespace(namespace){
+        sessionStorage.setItem(namespaceItem, namespace);
+    }
+
 }
