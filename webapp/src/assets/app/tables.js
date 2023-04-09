@@ -35,14 +35,14 @@ export class DataTable {
         if (this.selected.length == 0) {
             return;
         }
-        MESSAGE.info(`${this.name} 删除中`)
         for (let i in this.selected) {
             let item = this.selected[i];
             try {
+                MESSAGE.info(`${this.name} ${item.name} 删除中`)
                 await this.api.delete(item.id || item.name);
                 this.waitDeleted(item.id || item.name);
             } catch {
-                MESSAGE.error(`删除 ${this.name} ${item.id} 失败`)
+                MESSAGE.error(`${this.name} ${item.name} 删除失败`)
             }
         }
 

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 from kubernetes.client.models import v1_daemon_set
 
+from kubevision.common import utils
+
 LOG = logging.getLogger(__name__)
 
 
@@ -33,20 +35,27 @@ def get_container_state(container_state):
         'terminated': container_state.terminated != None,
         'waiting': container_state.waiting.to_dict() if  container_state.waiting else None,
     }
-    
+
 
 def get_container_statuses(obj):
-    container_statuses = []
-
-    for status in obj.status.container_statuses or []:
-        container_statuses.append({
+    container_statuses = [
+        {
             'name': status.name,
             'last_state': get_container_state(status.last_state),
             'ready': status.ready,
-            'state': get_container_state(status.state)
-        })
+            'state': get_container_state(status.state),
+        }
+        for status in obj.status.container_statuses or []
+    ]
     # import pdb; pdb.set_trace()
     return container_statuses
+
+
+def get_deletion(obj):
+    return {
+        'grace_period_seconds': obj.metadata.deletion_grace_period_seconds,
+        'timestamp': utils.parse_datetime(obj.metadata.deletion_timestamp),
+    }
 
 
 @dataclass
@@ -192,6 +201,7 @@ class Pod:
     pod_ip: str
     containers: list
     container_statuses: list
+    deletion: dict
 
     @classmethod
     def from_object(cls, obj):
@@ -210,4 +220,5 @@ class Pod:
         return Pod(name=name, labels=labels, node_name=node_name,
                    node_selector=node_selector, host_ip=host_ip,
                    pod_ip=pod_ip, containers=containers,
-                   container_statuses=container_statuses)
+                   container_statuses=container_statuses,
+                   deletion=get_deletion(obj))

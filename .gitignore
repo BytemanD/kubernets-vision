@@ -135,3 +135,5 @@ install/*.whl
 install/*.ico
 install/requirements.txt
 install/kubevision
+ChangeLog
+AUTHORS

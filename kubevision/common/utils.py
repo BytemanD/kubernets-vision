@@ -127,6 +127,18 @@ def with_response(return_code=200):
     return _response
 
 
+def parse_datetime(date_obj, str_format='%Y-%m-%d %H:%M:%S'):
+    return date_obj and date_obj.strftime(str_format) or None
+
+
+def format_time(obj, key, str_format='%Y-%m-%d %H:%M:%S'):
+    if not hasattr(obj, key):
+        return
+    if not getattr(obj, key):
+        return
+    setattr(obj, key, parse_datetime(getattr(obj, key)))
+
+
 def get_version():
     info = version.VersionInfo(constants.NAME)
     return info.release_string()

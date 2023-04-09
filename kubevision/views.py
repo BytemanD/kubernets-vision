@@ -73,24 +73,17 @@ class ObjectMixin(object):
         obj_dict = obj.to_dict()
         metadata = obj_dict.get('metadata')
 
-        if 'creation_timestamp' in metadata:
-            metadata['creation_timestamp'] = metadata.get('creation_timestamp').strftime('%Y-%m-%d %H:%M:%S')
+        utils.format_time(metadata, 'creation_timestamp')
         if 'managed_fields' in metadata:
             metadata['managed_fields'] = None
 
         status = obj_dict.get('status')
         if 'conditions' in status:
             for condition in status.get('conditions') or []:
-                cls._format_time(condition, 'last_heartbeat_time')
-                cls._format_time(condition, 'last_transition_time')
+                utils.format_time(condition, 'last_heartbeat_time')
+                utils.format_time(condition, 'last_transition_time')
 
         return yaml.dump(obj_dict)
-
-    @staticmethod
-    def _format_time(obj, key, str_format='%Y-%m-%d %H:%M:%S'):
-        if not hasattr(obj, key):
-            return
-        setattr(obj, key, getattr(obj, key).strftime(str_format))
 
 
 @registry_route(r'/')
@@ -294,9 +287,9 @@ class Pod(BaseReqHandler, ObjectMixin):
         return {'pod': result}
 
     @utils.with_response(return_code=204)
-    def delete(self, daemonset):
+    def delete(self, name):
         LOG.debug('options request')
-        api.CLIENT.delete_daemonset(daemonset, ns=self._get_namespace())
+        api.CLIENT.delete_pod(name, ns=self._get_namespace())
 
 
 @registry_route(r'/action')

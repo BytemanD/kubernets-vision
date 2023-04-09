@@ -27,6 +27,12 @@
             </template>
             {{ table.waiting[item.name].message }}
           </v-tooltip>
+          <v-tooltip top v-else-if="item.deletion.timestamp">
+            <template v-slot:activator="{ on, attrs }">
+              <span class="warning--text" v-bind="attrs" v-on="on">Terminating</span>
+            </template>
+            timestamp: {{ item.deletion.timestamp }} <br> grace_period_seconds: {{ item.deletion.grace_period_seconds }}
+          </v-tooltip>
         </template>
         <template v-slot:[`item.containers`]="{ item }">
           <v-chip small label class="my-1 mr-1" v-for="container in item.containers" v-bind:key="container.name">
