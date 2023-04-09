@@ -84,6 +84,10 @@ class ClientWrapper(object):
         return self.apps_api.read_namespaced_deployment(
             name, ns or constants.DEFAULT_NAMESPACE)
 
+    def delete_deploy(self, name, ns=None):
+        return self.apps_api.delete_namespaced_deployment(
+            name, ns or constants.DEFAULT_NAMESPACE)
+
     def _get_node_selector(self, daemonset: v1_daemon_set.V1DaemonSet):
         try:
             return daemonset.spec.template.spec.node_selector
@@ -134,6 +138,10 @@ class ClientWrapper(object):
                 ns or constants.DEFAULT_NAMESPACE
             ).items
         ]
+
+    def get_pod(self, name, ns=None):
+        return self.api.read_namespaced_pod(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
     def delete_pod(self, name, ns=None):
         return self.api.delete_namespaced_pod(

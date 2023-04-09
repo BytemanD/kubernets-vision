@@ -187,8 +187,8 @@ class Deployment(BaseReqHandler, ObjectMixin):
         return {'deployment': result}
 
     @utils.with_response(return_code=204)
-    def delete(self, daemonset):
-        api.CLIENT.delete_daemonset(daemonset, ns=self._get_namespace())
+    def delete(self, name):
+        api.CLIENT.delete_deploy(name, ns=self._get_namespace())
 
 
 @registry_route(r'/daemonset/(.+)')
@@ -259,7 +259,7 @@ class Pod(BaseReqHandler, ObjectMixin):
 
     @utils.response
     def get(self, name):
-        pod = api.CLIENT.get_node(name, ns=self._get_namespace())
+        pod = api.CLIENT.get_pod(name, ns=self._get_namespace())
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
             raise exceptions.ApiException(400, f'format {fmt} is invalid')
