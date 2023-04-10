@@ -52,6 +52,9 @@
                     <v-list-item @click="openPodLogsDialog(item)">
                         <v-list-item-title>日志</v-list-item-title>
                     </v-list-item>
+                    <v-list-item @click="openPodExecDialog(item)">
+                        <v-list-item-title>执行命令</v-list-item-title>
+                    </v-list-item>
                 </v-list>
             </v-menu>
         </template>
@@ -70,7 +73,8 @@
       </v-data-table>
     </v-col>
     <DescribeResource :show.sync="showDescribeDialog" resource-name='pod' :resource="selectResource.name" />
-    <PogLogs :show.sync="showPodLogsDialog" :pod="selectResource" />
+    <PodLogs :show.sync="showPodLogsDialog" :pod="selectResource" />
+    <PodExec :show.sync="showPodExecDialog" :pod="selectResource" />
   </v-row>
 </template>
 <script>
@@ -79,11 +83,12 @@ import { PodTable } from '@/assets/app/tables';
 
 import TableRefreshBtn from '../plugins/TableRefreshBtn';
 import DescribeResource from './dialogs/DescribeResource.vue';
-import PogLogs from './dialogs/PogLogs.vue';
+import PodLogs from './dialogs/PodLogs.vue';
+import PodExec from './dialogs/PodExec.vue';
 
 export default {
   components: {
-    TableRefreshBtn, DescribeResource, PogLogs,
+    TableRefreshBtn, DescribeResource, PodLogs, PodExec,
   },
   data: () => ({
     Utils: Utils,
@@ -91,6 +96,7 @@ export default {
     showDescribeDialog: false,
     selectResource: {},
     showPodLogsDialog: false,
+    showPodExecDialog: false
   }),
   methods: {
     refresh: async function () {
@@ -103,7 +109,11 @@ export default {
     openPodLogsDialog: function (item) {
         this.selectResource = item;
         this.showPodLogsDialog = !this.showPodLogsDialog;
-    }
+    },
+    openPodExecDialog: function (item) {
+        this.selectResource = item;
+        this.showPodExecDialog = !this.showPodExecDialog;
+    },
   },
   created: async function () {
     this.table.refresh();

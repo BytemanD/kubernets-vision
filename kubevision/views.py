@@ -312,32 +312,43 @@ class Action(BaseReqHandler):
     def post(self):
         body = self._get_body()
         if 'deleteLabel' in body.keys():
-            data = body.get('deleteLabel')
-            self.delete_label(data.get('kind'), data.get('name'),
-                              data.get('label'))
+            self.delete_label(body)
         elif 'addLabel' in body.keys():
-            data = body.get('addLabel')
-            self.add_label(data.get('kind'), data.get('name'),
-                           data.get('labels'))
+            return self.add_label(body)
+        elif 'exec' in body.keys():
+            return self.exec_on_pod(body)
 
-    def delete_label(self, kind, name, label):
+    def delete_label(self, body):
+        data = body.get('deleteLabel')
+        kind = data.get('kind')
         if kind == 'node':
-            api.CLIENT.delete_node_label(name, label)
+            return api.CLIENT.delete_node_label(data.get('name'),
+                                                data.get('label'))
 
-    def add_label(self, kind, name, labels):
-        """Add Lable
+    def add_label(self, body):
+        """Add Label
 
         Args:
-            kind (string): resource kind
-            name (string): resource name
-            labels (lables): dict, e.g. {key1: value1}
+            body (dict): request body
         """
+        data = body.get('addLabel')
+        kind = data.get('kind')
         if kind == 'node':
-            api.CLIENT.add_node_label(name, labels)
+            return api.CLIENT.add_node_label(data.get('name'),
+                                             data.get('labels'))
+
+    def exec_on_pod(self, body):
+        data = body.get('exec')
+        if 'pod' not in data or 'command' not in data:
+            raise exceptions.ApiException(400, 'pod and command must confit')
+        result = api.CLIENT.exec_on_pod(data.get('pod'), data.get('command'),
+                                        ns=self._get_namespace(),
+                                        container=data.get('container'))
+        return {'exec': result}
 
 
 class Configs(web.RequestHandler):
-
+    
     def get(self):
         global CONF_DB_API
 

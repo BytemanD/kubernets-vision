@@ -21,6 +21,7 @@
 
 <script>
 import API from '@/assets/app/api';
+import MESSAGE from '@/assets/app/message';
 
 export default {
     props: {
@@ -34,6 +35,10 @@ export default {
     }),
     methods: {
         async refreshLogs() {
+            if (this.pod.containers.length > 1 && ! this.container) {
+                MESSAGE.warning('请选择容器')
+                return;
+            }
             this.content = await (API.logs.get(this.pod.name, this.container));
         }
     },
@@ -41,11 +46,7 @@ export default {
         show(newVal) {
             this.display = newVal;
             if (this.display && this.pod) {
-                if (this.pod.containers.length == 1) {
-                    this.container = this.pod.containers[0].name;
-                } else {
-                    this.container = null;
-                }
+                this.container = this.pod.containers[0].name;
                 if (this.pod.containers.length == 1 || this.container) {
                     this.refreshLogs();
                 }

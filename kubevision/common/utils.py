@@ -88,7 +88,7 @@ def response(func):
             LOG.exception(e)
             resp = e.status, e.body or e.reason
         except comm_exc.ApiException as ex:
-            resp = ex.status_code, {'message': ex.log_message}
+            resp = ex.status_code, {'error': ex.log_message}
         except Exception as e:
             LOG.exception(e)
             resp = 500, f'Internal Server error: {str(e)}'

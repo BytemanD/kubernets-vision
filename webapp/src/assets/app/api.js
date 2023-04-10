@@ -109,6 +109,14 @@ class Logs extends Restfulclient {
 }
 class Action extends Restfulclient {
     constructor() { super('/action') }
+
+    async execOnPod(name, command, container=null){
+        let data = {pod: name, command: command}
+        if (container){
+            data.container = container;
+        }
+        return (await this.post({exec: data})).exec
+    }
 }
 class Version extends Restfulclient {
     constructor() { super('/version') }

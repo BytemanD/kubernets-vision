@@ -79,12 +79,9 @@ export default {
         refresh: async function () {
             this.table.refresh();
         },
-        updatedLabel: function (value) {
-            if (value) {
-                this.$MESSAGE.success('添加成功');
+        updatedLabel: function (success) {
+            if (success) {
                 this.refresh();
-            } else {
-                this.$MESSAGE.error('添加失败');
             }
         },
         describeNode: function (node) {

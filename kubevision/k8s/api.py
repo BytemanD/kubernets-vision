@@ -154,6 +154,16 @@ class ClientWrapper(object):
             name, ns or constants.DEFAULT_NAMESPACE,
             **kwargs)
 
+    def exec_on_pod(self, name, command, ns=None, container=None, async_req=False, **kwargs):
+        from kubernetes.stream import stream
+        # import pdb; pdb.set_trace()
+        result = stream(self.api.connect_post_namespaced_pod_exec,
+                        name, ns, command=['/bin/sh', '-c', command],
+                        container=container, stdout=True, stderr=True, tty=False,
+                        async_req=async_req,
+                        **kwargs)
+        return async_req and result.get() or result
+
 
 def init(kube_config: pathlib.Path):
     # sourcery skip: instance-method-first-arg-name

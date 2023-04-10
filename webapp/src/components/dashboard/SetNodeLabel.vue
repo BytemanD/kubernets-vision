@@ -19,6 +19,7 @@
 
 <script>
 import API from '@/assets/app/api';
+import MESSAGE from '@/assets/app/message';
 
 export default {
     props: {
@@ -46,6 +47,7 @@ export default {
                     let node = this.nodes[i];
                     await API.addNodeLabels(node.name, labels);
                 }
+                MESSAGE.success('添加成功');
                 this.$emit("completed", true);
             } catch {
                 this.$emit("completed", false);
