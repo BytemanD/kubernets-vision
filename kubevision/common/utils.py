@@ -127,6 +127,14 @@ def with_response(return_code=200):
     return _response
 
 
+def register_action(name):
+
+    def decorator(func):
+        func.wsgi_action = name
+        return func
+    return decorator
+
+
 def parse_datetime(date_obj, str_format='%Y-%m-%d %H:%M:%S'):
     return date_obj and date_obj.strftime(str_format) or None
 

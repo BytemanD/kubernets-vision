@@ -11,11 +11,22 @@
                     </v-col>
                     <v-col cols="2">
                         <v-btn color="warning" class="mr-1" :disabled="command.length==0"  @click="execComamnd()" >执行</v-btn>
-                        <v-btn text color="info">复制结果</v-btn>
+                        <!-- <v-btn text color="info">复制结果</v-btn> -->
+                        <v-menu offset-y>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn text color="purple" v-bind="attrs" v-on="on" @click="refresExecHistory()">历史</v-btn>
+                        </template>
+                        <v-list dense>
+                            <v-list-item v-for="cmd in history" v-bind:key="cmd" @click="inputComand(cmd)" >
+                                <v-list-item-title>{{ cmd }}</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-menu>
+                    
                     </v-col>
                 </v-row>
             </v-toolbar>
-            <v-card-text style="height: 600px;">
+            <v-card-text style="height: 600px;" class="pt-4">
                 <v-icon class="mdi-spin" v-if="waiting">mdi-rotate-right</v-icon>
                 <pre v-else>{{ content }}</pre>
             </v-card-text>
@@ -37,7 +48,8 @@ export default {
         container: null,
         waiting: false,
         command: '',
-        content: ''
+        content: '',
+        history: []
     }),
     methods: {
         async execComamnd() {
@@ -47,16 +59,29 @@ export default {
                 MESSAGE.warning('请选择容器');
                 return;
             }
-            this.content = await API.action.execOnPod(this.pod.name, this.command, this.container);
+            let cmd = this.command.trim();
+            this.content = await API.action.execOnPod(this.pod.name, cmd, this.container);
             this.waiting = false;
+            if (this.history.indexOf(cmd) < 0){
+                API.action.addExecHistory(cmd);
+                this.history.unshift(cmd)
+            }
+        },
+        async refresExecHistory(){
+            this.history = await API.action.getExecHistory();
+        },
+        inputComand(cmd){
+            this.command = cmd;
         }
     },
     watch: {
         show(newVal) {
             this.display = newVal;
-            console.log(this.display, this.pod)
+            this.command = '';
+            this.content = '';
             if (this.display && this.pod) {
                 this.container = this.pod.containers[0].name;
+                this.refresExecHistory();
             }
         },
         display(newVal) {

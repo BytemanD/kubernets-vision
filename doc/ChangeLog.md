@@ -11,3 +11,5 @@
 - [X] 支持多窗口切换 namespace
 - [X] 支持显示Pod Terminating状态
 - [X] 支持显示Pod 日志
+- [X] 支持Pod执行命令
+- [X] 支持历史命令

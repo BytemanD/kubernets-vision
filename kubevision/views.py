@@ -1,16 +1,16 @@
 import json
 import logging
 import yaml
+import inspect
 
 from tornado import web
-
-from kubevision.common import conf
-from kubevision.common import constants
-from kubevision.common import exceptions
-from kubernetes.client import exceptions as client_exc
-from kubevision.common import utils
 from kubevision.k8s import api
 from kubevision.k8s import objects
+
+from kubevision.common import conf
+from kubevision.common import exceptions
+from kubevision.common import utils
+from kubevision.common import wsgi
 
 LOG = logging.getLogger(__name__)
 CONF = conf.CONF
@@ -18,7 +18,7 @@ CONF = conf.CONF
 CONF_DB_API = None
 RUN_AS_CONTAINER = False
 ROUTES = []
-
+EXEC_HOSTORY = [];
 
 def registry_route(url):
 
@@ -28,40 +28,6 @@ def registry_route(url):
         ROUTES.append((url, cls))
         return cls
     return registry
-
-
-class BaseReqHandler(web.RequestHandler):
-
-    def set_default_headers(self):
-        super().set_default_headers()
-        if CONF.enable_cross_domain:
-            self.set_header('Access-Control-Allow-Origin', '*')
-            self.set_header('Access-Control-Allow-Headers', '*')
-            self.set_header('Access-Control-Allow-Max-Age', 1000)
-            self.set_header('Access-Control-Allow-Methods',
-                            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-
-    def return_resp(self, status, data):
-        self.set_status(status)
-        self.finish(data)
-
-    def _get_body(self):
-        return json.loads(self.request.body)
-
-    def set_default_headers(self):
-        super().set_default_headers()
-        self.set_header('Access-Control-Allow-Origin', '*')
-        self.set_header('Access-Control-Allow-Headers', '*')
-        self.set_header('Access-Control-Allow-Max-Age', 1000)
-        self.set_header('Access-Control-Allow-Methods',
-                        'GET, POST, PUT, DELETE, OPTIONS')
-
-    def _get_namespace(self):
-        return self.get_argument('namespace', constants.DEFAULT_NAMESPACE)
-
-    @utils.with_response(return_code=204)
-    def options(self, *args, **kwargs):
-        LOG.debug('options request')
 
 
 class ObjectMixin(object):
@@ -87,7 +53,7 @@ class ObjectMixin(object):
 
 
 @registry_route(r'/')
-class Index(BaseReqHandler):
+class Index(wsgi.BaseReqHandler):
 
     def get(self):
         if CONF.index_redirect:
@@ -97,7 +63,7 @@ class Index(BaseReqHandler):
 
 
 @registry_route(r'/.+\.html')
-class Html(BaseReqHandler):
+class Html(wsgi.BaseReqHandler):
 
     def get(self):
         try:
@@ -108,7 +74,7 @@ class Html(BaseReqHandler):
 
 
 @registry_route(r'/config.json')
-class ConfigJson(BaseReqHandler):
+class ConfigJson(wsgi.BaseReqHandler):
 
     def get(self):
         try:
@@ -119,7 +85,7 @@ class ConfigJson(BaseReqHandler):
 
 
 @registry_route(r'/version')
-class ConfigJson(BaseReqHandler):
+class ConfigJson(wsgi.BaseReqHandler):
 
     @utils.with_response()
     def get(self):
@@ -127,7 +93,7 @@ class ConfigJson(BaseReqHandler):
 
 
 @registry_route(r'/node')
-class Nodes(BaseReqHandler):
+class Nodes(wsgi.RequestContext):
 
     @utils.response
     def get(self):
@@ -136,7 +102,7 @@ class Nodes(BaseReqHandler):
 
 
 @registry_route(r'/node/(.*)')
-class Node(BaseReqHandler, ObjectMixin):
+class Node(wsgi.BaseReqHandler, ObjectMixin):
 
     @utils.response
     def get(self, name):
@@ -145,7 +111,7 @@ class Node(BaseReqHandler, ObjectMixin):
 
 
 @registry_route(r'/namespace')
-class Namespaces(BaseReqHandler):
+class Namespaces(wsgi.BaseReqHandler):
 
     @utils.response
     def get(self):
@@ -154,7 +120,7 @@ class Namespaces(BaseReqHandler):
 
 
 @registry_route(r'/namespace/(.+)')
-class Namespace(BaseReqHandler, ObjectMixin):
+class Namespace(wsgi.BaseReqHandler, ObjectMixin):
 
     @utils.response
     def get(self, name):
@@ -170,30 +136,32 @@ class Namespace(BaseReqHandler, ObjectMixin):
 
 
 @registry_route(r'/deployment')
-class Deployments(BaseReqHandler):
+class Deployments(wsgi.RequestContext):
 
     @utils.response
     def get(self):
-        items = api.CLIENT.list_deploy(ns=self._get_namespace())
+        context = self.get_context()
+        items = api.CLIENT.list_deploy(ns=context.namespace)
         return {'deployments': [item.__dict__ for item in items]}
 
 
 @registry_route(r'/daemonset')
-class Daemonsets(BaseReqHandler):
+class Daemonsets(wsgi.RequestContext):
 
     @utils.response
     def get(self):
-        LOG.info('namespace is %s', self._get_namespace())
-        items = api.CLIENT.list_daemonset(ns=self._get_namespace())
+        context = self.get_context()
+        items = api.CLIENT.list_daemonset(ns=context.namespace)
         return {'daemonsets': [item.__dict__ for item in items]}
 
 
 @registry_route(r'/deployment/(.+)')
-class Deployment(BaseReqHandler, ObjectMixin):
+class Deployment(wsgi.RequestContext, ObjectMixin):
 
     @utils.response
     def get(self, name):
-        deploy = api.CLIENT.get_deploy(name, ns=self._get_namespace())
+        context = self.get_context()
+        deploy = api.CLIENT.get_deploy(name, ns=context.namespace)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
             raise exceptions.ApiException(400, f'format {fmt} is invalid')
@@ -205,15 +173,17 @@ class Deployment(BaseReqHandler, ObjectMixin):
 
     @utils.with_response(return_code=204)
     def delete(self, name):
-        api.CLIENT.delete_deploy(name, ns=self._get_namespace())
+        context = self.get_context()
+        api.CLIENT.delete_deploy(name, ns=context.namespace)
 
 
 @registry_route(r'/daemonset/(.+)')
-class Daemonset(BaseReqHandler, ObjectMixin):
+class Daemonset(wsgi.RequestContext, ObjectMixin):
 
     @utils.response
     def get(self, name):
-        daemonset = api.CLIENT.get_daemonset(name)
+        context = self.get_context()
+        daemonset = api.CLIENT.get_daemonset(name, ns=context.namespace)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
             raise exceptions.ApiException(400, f'format {fmt} is invalid')
@@ -225,7 +195,8 @@ class Daemonset(BaseReqHandler, ObjectMixin):
 
     @utils.with_response(return_code=204)
     def delete(self, daemonset):
-        api.CLIENT.delete_daemonset(daemonset, ns=self._get_namespace())
+        context = self.get_context()
+        api.CLIENT.delete_daemonset(daemonset, ns=context.namespace)
 
     @utils.with_response(return_code=202)
     def put(self, daemonset):
@@ -242,10 +213,11 @@ class Daemonset(BaseReqHandler, ObjectMixin):
             }
         }
         """
+        context = self.get_context()
         data = self._get_body().get('daemonset', {})
         force = data.get('force', False)
         containers = data.get('containers', {})
-        ds = api.CLIENT.get_daemonset(daemonset, ns=self._get_namespace())
+        ds = api.CLIENT.get_daemonset(daemonset, ns=context.namespace)
         if containers:
             for container in ds.spec.template.spec.containers:
                 new_image =  containers.get(container.name, {}).get('image')
@@ -256,27 +228,30 @@ class Daemonset(BaseReqHandler, ObjectMixin):
 
         if force:
             # TODO
-            api.CLIENT.replace_daemonset(daemonset, ds, ns=self._get_namespace(), _request_timeout=0)
+            api.CLIENT.replace_daemonset(daemonset, ds, ns=context.namespace,
+                                         _request_timeout=0)
         else:
-            api.CLIENT.replace_daemonset(daemonset, ds, ns=self._get_namespace())
+            api.CLIENT.replace_daemonset(daemonset, ds, ns=context.namespace)
         return {}
 
 
 @registry_route(r'/pod')
-class Pods(BaseReqHandler):
+class Pods(wsgi.RequestContext):
 
     @utils.response
     def get(self):
-        items = api.CLIENT.list_pod(ns=self._get_namespace())
+        context = self.get_context()
+        items = api.CLIENT.list_pod(ns=context.namespace)
         return {'pods': [item.__dict__ for item in items]}
 
 
 @registry_route(r'/pod/(.+)')
-class Pod(BaseReqHandler, ObjectMixin):
+class Pod(wsgi.RequestContext, ObjectMixin):
 
     @utils.response
     def get(self, name):
-        pod = api.CLIENT.get_pod(name, ns=self._get_namespace())
+        context = self.get_context()
+        pod = api.CLIENT.get_pod(name, ns=context.namespace)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
             raise exceptions.ApiException(400, f'format {fmt} is invalid')
@@ -288,67 +263,72 @@ class Pod(BaseReqHandler, ObjectMixin):
 
     @utils.with_response(return_code=204)
     def delete(self, name):
+        context = self.get_context()
         LOG.debug('options request')
-        api.CLIENT.delete_pod(name, ns=self._get_namespace())
-
-@registry_route(r'/logs/(.+)')
-class Logs(BaseReqHandler, ObjectMixin):
-
-    @utils.with_response(return_code=200)
-    def get(self, name):
-        container = self.get_argument('container')
-        params = {}
-        if container:
-            params['container'] = container
-        logs = api.CLIENT.get_pod_logs(name, ns=self._get_namespace(),
-                                       **params)
-        return {'logs': logs}
+        api.CLIENT.delete_pod(name, ns=context.namespace)
 
 
 @registry_route(r'/action')
-class Action(BaseReqHandler):
+class Action(wsgi.BaseAction):
 
-    @utils.response
-    def post(self):
-        body = self._get_body()
-        if 'deleteLabel' in body.keys():
-            self.delete_label(body)
-        elif 'addLabel' in body.keys():
-            return self.add_label(body)
-        elif 'exec' in body.keys():
-            return self.exec_on_pod(body)
-
-    def delete_label(self, body):
-        data = body.get('deleteLabel')
+    @utils.register_action('deleteLabel')
+    def _action_delete_label(self, context, data):
         kind = data.get('kind')
         if kind == 'node':
             return api.CLIENT.delete_node_label(data.get('name'),
                                                 data.get('label'))
 
-    def add_label(self, body):
+    @utils.register_action('addLabel')
+    def _action_add_label(self, context, data):
         """Add Label
 
         Args:
             body (dict): request body
         """
-        data = body.get('addLabel')
         kind = data.get('kind')
         if kind == 'node':
             return api.CLIENT.add_node_label(data.get('name'),
                                              data.get('labels'))
 
-    def exec_on_pod(self, body):
-        data = body.get('exec')
+    @utils.register_action('exec')
+    def _action_exec_on_pod(self, context, data):
         if 'pod' not in data or 'command' not in data:
-            raise exceptions.ApiException(400, 'pod and command must confit')
+            raise exceptions.ApiException(400, 'pod and command must set')
         result = api.CLIENT.exec_on_pod(data.get('pod'), data.get('command'),
-                                        ns=self._get_namespace(),
+                                        ns=context.namespace,
                                         container=data.get('container'))
         return {'exec': result}
 
+    @utils.register_action('addExecHistory')
+    def _action_add_exec_history(self, context, data):
+        global EXEC_HOSTORY
+
+        exec = data.get('exec', '').strip()
+        if not exec:
+            raise exceptions.ApiException(400, 'exec is empty')
+        if exec not in EXEC_HOSTORY:
+            EXEC_HOSTORY.insert(0, exec)
+
+    @utils.register_action('getExecHistory')
+    def _action_get_exec_history(self, context, data):
+        global EXEC_HOSTORY
+
+        # TODO
+        return {'history': EXEC_HOSTORY[:10]}
+
+
+    @utils.register_action('getLog')
+    def _action_get_logs(self, context, data):
+        pod = data.get('pod')
+        params = {}
+        if 'container' in data:
+            params['container'] = data.get('container')
+        logs = api.CLIENT.get_pod_logs(pod, ns=context.namespace, **params)
+        return {'logs': logs}
+
 
 class Configs(web.RequestHandler):
-    
+
     def get(self):
         global CONF_DB_API
 

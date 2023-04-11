@@ -17,9 +17,6 @@ export class DataTable {
         this.extendItems = []
         this.newItemDialog = null;
     }
-    getNamespace(){
-        return Utils.getNamespace();
-    }
     async openNewItemDialog(){
         if (this.newItemDialog){
             this.newItemDialog.open();
@@ -79,9 +76,6 @@ export class DataTable {
     }
     async refresh(filters = {}) {
         let result = null
-        if (!filters.namespace){
-            filters.namespace = this.getNamespace()
-        }
         try {
             this.refreshing = true;
             if ( typeof this.api.detail != 'undefined' ) {

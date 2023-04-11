@@ -1,12 +1,13 @@
 import axios from 'axios';
 import MESSAGE from './message';
+import { Utils } from './utils';
 
 class Restfulclient {
     constructor(baseUrl) {
         this.baseUrl = baseUrl;
     }
     _parseToQueryString(filters) {
-        if (!filters) { return '' }
+        if (!filters) { return null }
         let queryParams = [];
         for (var key in filters) {
             if ( Array.isArray(filters[key])){
@@ -20,6 +21,11 @@ class Restfulclient {
         }
         return queryParams.join('&');
     }
+    _getHeader(){
+        return {
+            'X-Namespace': Utils.getNamespace(),
+        }
+    }
     _getErrorMsg(response){
         let errorData = response.data;
         if (errorData.badRequest && errorData.badRequest.message) {
@@ -28,22 +34,53 @@ class Restfulclient {
             return JSON.stringify(errorData)
         }
     }
+    _alertAndTrow(error){
+        if (error.code == 'ERR_NETWORK'){
+            MESSAGE.error(`请求失败 ${error.message}`)
+        } else if (error.code == 'ERR_BAD_REQUEST'){
+            if (typeof error.response == 'string'){
+                MESSAGE.error(`请求错误, ${error.response.data}`)
+            } else {
+                MESSAGE.error(`请求错误, ${error.response.data.error || error.response.data.message}`)
+            }
+        } else {
+            MESSAGE.error(`请求失败 ${error.message}`)
+        }
+        throw error
+    }
     async get(url=null) {
         let reqUrl = url ? `${this.baseUrl}/${url}` : this.baseUrl;
         try {
-            let resp = await axios.get(reqUrl);
+            let resp = await axios.get(
+                reqUrl,
+                {headers: this._getHeader()});
             return resp.data;
         } catch (error){
-            MESSAGE.error(`请求失败 ${error.message}`)
-            throw error
+            this._alertAndTrow(error)
         }
     }
-    async delete(id) { let resp = await axios.delete(`${this.baseUrl}/${id}`) ; return resp.data }
-    async post(body, url=null) {
-        let resp = await axios.post(`${url || this.baseUrl}`, body);
+    async delete(id) {
+        let resp = await axios.delete(
+            `${this.baseUrl}/${id}`,
+            {headers: this._getHeader()});
         return resp.data
     }
-    async put(id, body) { let resp = await axios.put(`${this.baseUrl}/${id}`, body); return resp.data }
+    async post(body, url=null) {
+        try{
+            let resp = await axios.post(
+                `${url || this.baseUrl}`, body,
+                {headers: this._getHeader()});
+            return resp.data
+        } catch (error){
+            this._alertAndTrow(error);
+        }
+    }
+    async put(id, body) {
+        let resp = await axios.put(
+            `${this.baseUrl}/${id}`, body,
+            {headers: this._getHeader()});
+        return resp.data
+    }
     async show(id, filters={}) {
         let url = filters ? `${id}?${this._parseToQueryString(filters)}` : id;
         let data = await this.get(`${url}`);
@@ -51,11 +88,10 @@ class Restfulclient {
     }
     async list(filters = {}) {
         let queryString = this._parseToQueryString(filters);
-        let url = this.baseUrl;
-        if (queryString) { url += `?${queryString}` }
+        let url = queryString ? `?${queryString}`: null;
+
         try{
-            let resp = await axios.get(`${url}`);
-            return resp.data;
+            return await this.get(url);
         } catch (error){
             MESSAGE.error(`请求失败 ${error.message}`)
             throw error;
@@ -66,15 +102,6 @@ class Restfulclient {
         if (headers) { config.headers = headers; }
         let resp = await axios.patch(`${this.baseUrl}/${id}`, body, config);
         return resp.data
-    }
-    async postAction(id, action, data) {
-        let body = {};
-        body[action] = data;
-        return (await axios.post(`${this.baseUrl}/${id}/action`, body)).data;
-    }
-
-    async listActive(){
-        return (await this.list({status: 'active'}))
     }
 }
 
@@ -93,20 +120,6 @@ class Deployment extends Restfulclient {
 class Pod extends Restfulclient {
     constructor() { super('/pod') }
 }
-class Logs extends Restfulclient {
-    constructor() { super('/logs') }
-    async get(podName, container=null){
-        let filters = {}
-        if (container){
-            filters.container = container;
-        }
-        let url = `${podName}`;
-        if (Object.keys(filters).length > 0){
-            url = `${url}?${this._parseToQueryString(filters)}`;
-        }
-        return (await super.get(url)).logs
-    }
-}
 class Action extends Restfulclient {
     constructor() { super('/action') }
 
@@ -116,6 +129,23 @@ class Action extends Restfulclient {
             data.container = container;
         }
         return (await this.post({exec: data})).exec
+    }
+    async getLog(pod, container=null){
+        let data = {pod: pod}
+        if (container){
+            data.container = container;
+        }
+        return (await this.post({getLog: data})).logs
+    }
+    async addExecHistory(command, container=null){
+        let data = {exec: command}
+        if (container){
+            data.container = container;
+        }
+        await this.post({addExecHistory: data})
+    }
+    async getExecHistory(){
+        return (await this.post({getExecHistory: {}})).history
     }
 }
 class Version extends Restfulclient {
@@ -131,7 +161,6 @@ export class Api {
         this.pod = new Pod();
         this.action = new Action();
         this.version = new Version();
-        this.logs = new Logs();
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});

@@ -59,6 +59,13 @@ def get_deletion(obj):
 
 
 @dataclass
+class Context:
+    namespace: str
+
+    def __str__(self):
+        return f'<namepace: {self.namespace} >'
+
+@dataclass
 class Node:
     name: str
     ready: str
