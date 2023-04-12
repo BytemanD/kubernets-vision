@@ -133,5 +133,13 @@ export class Utils {
     static setNamespace(namespace){
         sessionStorage.setItem(namespaceItem, namespace);
     }
+    static parseNodeMemory(memory){
+        if (memory.endsWith('Ki')){
+            let ki = parseInt(memory.slice(0, -2))
+            return `${(ki / 1024 / 1024).toFixed(2)} GB`
+        } else {
+            return memory
+        }
+    }
 
 }

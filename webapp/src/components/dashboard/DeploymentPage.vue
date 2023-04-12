@@ -18,7 +18,7 @@
 
         <template v-slot:[`item.ready`]="{ item }">
           <span class="error--text" v-if="item.ready_replicas < item.replicas">
-            {{ item.ready_replicas }}/{{item.replicas }}
+            {{ item.ready_replicas }}/{{ item.replicas }}
           </span>
           <span class="success--text" v-else>{{ item.ready_replicas }}/{{ item.replicas }}</span>
         </template>
@@ -28,20 +28,20 @@
           </v-chip>
         </template>
         <template v-slot:[`item.actions`]="{ item }">
-            <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn icon color="purple" v-bind="attrs" v-on="on">
-                        <v-icon small>mdi-dots-vertical</v-icon></v-btn>
-                </template>
-                <v-list dense>
-                    <v-list-item @click="describeDeployment(item)">
-                        <v-list-item-title>描述</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="replaceDaemonSet(item)">
-                        <v-list-item-title class="orange--text">替换</v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </v-menu>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon color="purple" v-bind="attrs" v-on="on">
+                <v-icon small>mdi-dots-vertical</v-icon></v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item @click="describeDeployment(item)">
+                <v-list-item-title>描述</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="replaceDaemonSet(item)">
+                <v-list-item-title class="orange--text">替换</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </template>
         <template v-slot:expanded-item="{ headers, item }">
           <td></td>
@@ -55,7 +55,11 @@
             <v-simple-table dense class="grey lighten-2">
               <template v-slot:default>
                 <thead>
-                  <tr><th>容器</th><th>镜像</th><th>命令/参数</th></tr>
+                  <tr>
+                    <th>容器</th>
+                    <th>镜像</th>
+                    <th>命令/参数</th>
+                  </tr>
                 </thead>
                 <tbody>
                   <tr v-for="container in item.containers" v-bind:key="container.name">
@@ -65,6 +69,23 @@
                   </tr>
                 </tbody>
               </template>
+            </v-simple-table>
+            <br>
+            <v-simple-table dense class="grey lighten-2">
+              <thead>
+                <tr>
+                  <th>初始化容器</th>
+                  <th>镜像</th>
+                  <th>命令/参数</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="container in item.init_containers" v-bind:key="container.name">
+                  <td>{{ container.name }}</td>
+                  <td>{{ container.image }}</td>
+                  <td>{{ Utils.getConainerCmd(container) }}</td>
+                </tr>
+              </tbody>
             </v-simple-table>
           </td>
         </template>
@@ -98,12 +119,12 @@ export default {
       this.table.refresh();
     },
     describeDeployment: function (item) {
-        this.showDescribeDialog = !this.showDescribeDialog;
-        this.selectResource = item.name;
+      this.showDescribeDialog = !this.showDescribeDialog;
+      this.selectResource = item.name;
     },
     replaceDaemonSet: function (item) {
-        this.showReplaceDialog = !this.showReplaceDialog;
-        this.selectedItem = item;
+      this.showReplaceDialog = !this.showReplaceDialog;
+      this.selectedItem = item;
     }
   },
   created: async function () {

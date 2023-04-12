@@ -1,7 +1,7 @@
 <template>
     <v-row>
         <v-col>
-            <v-btn small color="primary" :disabled="table.selected.length == 0" @click="showSetDialog = true">添加标签</v-btn>
+            <v-btn small color="primary" :disabled="table.selected.length == 0" @click="showSetDialog = true">设置标签</v-btn>
         </v-col>
         <v-col>
             <v-text-field small dense single-line hide-details v-model="table.search" append-icon="mdi-magnify"
@@ -14,6 +14,16 @@
             <v-data-table dense :headers="table.headers" :loading="table.refreshing" :items="table.items" item-key="name"
                 :items-per-page="table.itemsPerPage" :search="table.search" show-select v-model="table.selected" show-expand
                 single-expand>
+                <template v-slot:[`item.ready`]="{ item }">
+                    <v-icon color="success" v-if="item.ready =='True'">mdi-check-circle</v-icon>
+                    <v-icon color="error" v-else>mdi-close-circle</v-icon>
+                </template>
+                <template v-slot:[`item.cpu`]="{ item }">
+                    {{ item.allocatable.cpu }}
+                </template>
+                <template v-slot:[`item.memory`]="{ item }">
+                    {{ Utils.parseNodeMemory(item.allocatable.memory) }}
+                </template>
                 <template v-slot:[`item.os_image`]="{ item }">
                     <v-chip x-small label>{{ item.os_image }}</v-chip>
                 </template>
@@ -64,12 +74,14 @@ import { NodeTable } from '@/assets/app/tables';
 import TableRefreshBtn from '../plugins/TableRefreshBtn';
 import SetNodeLabel from './SetNodeLabel';
 import DescribeResource from './dialogs/DescribeResource.vue';
+import { Utils } from '@/assets/app/utils'
 
 export default {
     components: {
         TableRefreshBtn, SetNodeLabel, DescribeResource
     },
     data: () => ({
+        Utils: Utils,
         table: new NodeTable(),
         showSetDialog: false,
         showDescribeDialog: false,

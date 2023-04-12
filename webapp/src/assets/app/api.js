@@ -120,6 +120,10 @@ class Deployment extends Restfulclient {
 class Pod extends Restfulclient {
     constructor() { super('/pod') }
 }
+class ConfigMap extends Restfulclient {
+    constructor() { super('/configmap') }
+}
+
 class Action extends Restfulclient {
     constructor() { super('/action') }
 
@@ -147,6 +151,9 @@ class Action extends Restfulclient {
     async getExecHistory(){
         return (await this.post({getExecHistory: {}})).history
     }
+    async getClusterInfo(){
+        return (await this.post({getClusterInfo: {}})).cluster_info
+    }
 }
 class Version extends Restfulclient {
     constructor() { super('/version') }
@@ -161,6 +168,7 @@ export class Api {
         this.pod = new Pod();
         this.action = new Action();
         this.version = new Version();
+        this.configmap = new ConfigMap();
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});

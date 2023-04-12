@@ -73,6 +73,19 @@
                                 </tbody>
                             </template>
                         </v-simple-table>
+                        <br>
+                        <v-simple-table dense class="grey lighten-2">
+                            <thead>
+                                <tr><th>初始化容器</th><th>镜像</th><th>命令/参数</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="container in item.init_containers" v-bind:key="container.name">
+                                    <td>{{ container.name }}</td>
+                                    <td>{{ container.image }}</td>
+                                    <td>{{ Utils.getConainerCmd(container) }}</td>
+                                </tr>
+                            </tbody>
+                        </v-simple-table>
                     </td>
                 </template>
             </v-data-table>

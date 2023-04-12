@@ -59,7 +59,7 @@ class RequestContext(BaseReqHandler):
 
 
 class BaseAction(RequestContext):
-    
+
     def _get_function(self, body):
         found_func = None
         for name, func in inspect.getmembers(self, inspect.ismethod):

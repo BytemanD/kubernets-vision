@@ -8,6 +8,7 @@ from kubevision.k8s import api
 from kubevision.k8s import objects
 
 from kubevision.common import conf
+from kubevision.common import constants
 from kubevision.common import exceptions
 from kubevision.common import utils
 from kubevision.common import wsgi
@@ -268,6 +269,16 @@ class Pod(wsgi.RequestContext, ObjectMixin):
         api.CLIENT.delete_pod(name, ns=context.namespace)
 
 
+@registry_route(r'/configmap')
+class ConfigMaps(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self):
+        context = self.get_context()
+        items = api.CLIENT.list_configmap(ns=context.namespace)
+        return {'configmaps': [item.__dict__ for item in items]}
+
+
 @registry_route(r'/action')
 class Action(wsgi.BaseAction):
 
@@ -316,15 +327,21 @@ class Action(wsgi.BaseAction):
         # TODO
         return {'history': EXEC_HOSTORY[:10]}
 
-
     @utils.register_action('getLog')
     def _action_get_logs(self, context, data):
         pod = data.get('pod')
+        lines = int(data.get('lines', constants.DEFAULT_LOG_LINES))
         params = {}
         if 'container' in data:
             params['container'] = data.get('container')
-        logs = api.CLIENT.get_pod_logs(pod, ns=context.namespace, **params)
+        logs = api.CLIENT.get_pod_logs(pod, ns=context.namespace,
+                                       tail_lines=lines,
+                                       **params)
         return {'logs': logs}
+
+    @utils.register_action('getClusterInfo')
+    def _action_get_cluster_info(self, context, data):
+        return {'cluster_info': api.CLIENT.get_cluster_info()}
 
 
 class Configs(web.RequestHandler):

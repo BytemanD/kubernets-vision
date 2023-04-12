@@ -54,8 +54,9 @@ import { Utils } from '@/assets/app/utils';
 
 const navigationGroup = [
   {
-    name: '系统',
+    name: '集群',
     items: [
+      { title: '概览', icon: 'mdi-alpha-o-circle', router: '/overview' },
       { title: '命名空间', icon: 'mdi-alpha-n-circle', router: '/namespace' },
       { title: '节点', icon: 'mdi-server', router: '/node' },
     ]
@@ -66,6 +67,7 @@ const navigationGroup = [
       { title: 'DaemonSet', icon: 'mdi-alpha-s-circle', router: '/daemonset' },
       { title: 'Deployment', icon: 'mdi-alpha-d-circle', router: '/deployment' },
       { title: 'Pod', icon: 'mdi-alpha-p-circle', router: '/pod' },
+      { title: 'ConfigMap', icon: 'mdi-alpha-c-circle', router: '/configmap' },
     ]
   },
 ]

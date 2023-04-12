@@ -6,14 +6,17 @@ import vuetify from './plugins/vuetify'
 
 import MESSAGE from './assets/app/message';
 
+import App from './App.vue'
+import ErrorPage from './ErrorPage.vue'
+
 import NodePage from './components/dashboard/NodePage';
 import NameSpace from './components/dashboard/NameSpace';
 import DaemonSet from './components/dashboard/DaemonSet';
 import DeploymentPage from './components/dashboard/DeploymentPage';
 import PodPage from './components/dashboard/PodPage';
+import ConfigMapPage from './components/dashboard/ConfigMapPage'
+import OverviewPage from './components/dashboard/OverviewPage'
 
-import App from './App.vue'
-import ErrorPage from './ErrorPage.vue'
 
 Vue.use(VueRouter)
 
@@ -27,6 +30,8 @@ let router = new VueRouter({
         { path: '/daemonset', component: DaemonSet },
         { path: '/deployment', component: DeploymentPage },
         { path: '/pod', component: PodPage },
+        { path: '/configmap', component: ConfigMapPage },
+        { path: '/overview', component: OverviewPage },
     ]
 })
 

@@ -19,11 +19,20 @@ def get_images(obj):
 def get_containers(obj):
     try:
         return [
-            {'name': cnt.name,
-             'command': cnt.command,
-             'args': cnt.args,
+            {'name': cnt.name, 'command': cnt.command, 'args': cnt.args,
              'image': cnt.image} for cnt in obj.spec.template.spec.containers
         ]
+    except AttributeError as e:
+        LOG.warn(e)
+        return []
+
+
+def get_init_containers(obj):
+    try:
+        return [
+            {'name': cnt.name, 'command': cnt.command,  'args': cnt.args,
+             'image': cnt.image
+            } for cnt in obj.spec.template.spec.init_containers or []]
     except AttributeError as e:
         LOG.warn(e)
         return []
@@ -38,7 +47,7 @@ def get_container_state(container_state):
 
 
 def get_container_statuses(obj):
-    container_statuses = [
+    return [
         {
             'name': status.name,
             'last_state': get_container_state(status.last_state),
@@ -47,8 +56,6 @@ def get_container_statuses(obj):
         }
         for status in obj.status.container_statuses or []
     ]
-    # import pdb; pdb.set_trace()
-    return container_statuses
 
 
 def get_deletion(obj):
@@ -74,6 +81,8 @@ class Node:
     kernel_version: str
     os_image: str
     container_runtime_version: str
+    capacity: dict
+    allocatable: dict
 
     @classmethod
     def get_container_runtime_version(cls, node_info):
@@ -114,7 +123,9 @@ class Node:
             kernel_version=obj.status.node_info.kernel_version,
             os_image=obj.status.node_info.os_image,
             container_runtime_version=cls.get_container_runtime_version(
-                obj.status.node_info)
+                obj.status.node_info),
+            capacity=obj.status.capacity,
+            allocatable=obj.status.allocatable,
         )
 
 
@@ -139,6 +150,7 @@ class Deployment:
     labels: list
     images: list
     containers: list
+    init_containers: list
 
     @classmethod
     def from_object(cls, obj):
@@ -150,6 +162,7 @@ class Deployment:
             labels=obj.metadata.labels or [],
             images=get_images(obj),
             containers=get_containers(obj),
+            init_containers=get_init_containers(obj),
         )
 
 
@@ -165,6 +178,7 @@ class DaemonSet:
     selector: dict
     images: list
     containers: list
+    init_containers: list
 
     @classmethod
     def get_node_selector(cls, daemonset: v1_daemon_set.V1DaemonSet):
@@ -195,6 +209,7 @@ class DaemonSet:
             selector=cls.get_selector(obj),
             images=get_images(obj),
             containers=get_containers(obj),
+            init_containers=get_init_containers(obj),
         )
 
 
@@ -224,8 +239,22 @@ class Pod:
             for container in obj.spec.containers
         ]
         container_statuses = get_container_statuses(obj)
-        return Pod(name=name, labels=labels, node_name=node_name,
-                   node_selector=node_selector, host_ip=host_ip,
-                   pod_ip=pod_ip, containers=containers,
-                   container_statuses=container_statuses,
-                   deletion=get_deletion(obj))
+        return Pod(
+            name=name, labels=labels, node_name=node_name,
+            node_selector=node_selector, host_ip=host_ip,
+            pod_ip=pod_ip, containers=containers,
+            container_statuses=container_statuses,
+            deletion=get_deletion(obj),
+        )
+
+@dataclass
+class ConfigMap:
+    name: str
+    data_list: dict
+
+    @classmethod
+    def from_object(cls, obj):
+        return cls(
+            name=obj.metadata.name,
+            data_list=list(obj.data.keys())
+        )

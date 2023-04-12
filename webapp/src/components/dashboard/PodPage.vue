@@ -19,7 +19,7 @@
         <template v-slot:[`item.ready`]="{ item }">
           {{ Utils.getPodReadyNum(item) }} /{{ item.container_statuses.length }}
         </template>
-        <template v-slot:[`item.state`]="{ item }" >
+        <template v-slot:[`item.state`]="{ item }">
           {{ table.updateWaiting(item) }}
           <v-tooltip top v-if="table.waiting[item.name].reason">
             <template v-slot:activator="{ on, attrs }">
@@ -40,23 +40,23 @@
           </v-chip>
         </template>
         <template v-slot:[`item.actions`]="{ item }">
-            <v-menu offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn icon color="purple" v-bind="attrs" v-on="on">
-                        <v-icon small>mdi-dots-vertical</v-icon></v-btn>
-                </template>
-                <v-list dense>
-                    <v-list-item @click="describeResource(item)">
-                        <v-list-item-title>描述</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="openPodLogsDialog(item)">
-                        <v-list-item-title>日志</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="openPodExecDialog(item)">
-                        <v-list-item-title>执行命令</v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </v-menu>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon color="purple" v-bind="attrs" v-on="on">
+                <v-icon small>mdi-dots-vertical</v-icon></v-btn>
+            </template>
+            <v-list dense>
+              <v-list-item @click="describeResource(item)">
+                <v-list-item-title>描述</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="openPodLogsDialog(item)">
+                <v-list-item-title>日志</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="openPodExecDialog(item)">
+                <v-list-item-title>执行命令</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </template>
         <template v-slot:expanded-item="{ headers, item }">
           <td></td>
@@ -68,6 +68,7 @@
                 <td>{{ item[extendItem.value] }}</td>
               </tr>
             </table>
+            <br>
           </td>
         </template>
       </v-data-table>
@@ -107,12 +108,12 @@ export default {
       this.showDescribeDialog = !this.showDescribeDialog;
     },
     openPodLogsDialog: function (item) {
-        this.selectResource = item;
-        this.showPodLogsDialog = !this.showPodLogsDialog;
+      this.selectResource = item;
+      this.showPodLogsDialog = !this.showPodLogsDialog;
     },
     openPodExecDialog: function (item) {
-        this.selectResource = item;
-        this.showPodExecDialog = !this.showPodExecDialog;
+      this.selectResource = item;
+      this.showPodExecDialog = !this.showPodExecDialog;
     },
   },
   created: async function () {

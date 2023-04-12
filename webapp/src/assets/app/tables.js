@@ -100,6 +100,8 @@ export class NodeTable extends DataTable {
         super([{ text: '名字', value: 'name' },
                { text: 'Ready', value: 'ready' },
                { text: '内网IP', value: 'internal_ip' },
+               { text: 'CPU', value: 'cpu' },
+               { text: '内存', value: 'memory' },
                { text: '系统', value: 'os_image' },
                { text: '操作', value: 'actions' },
             ], API.node, 'nodes', '节点');
@@ -142,9 +144,7 @@ export class DaemonsetTable extends DataTable {
                { text: 'containers', value: 'containers' },
                { text: '操作', value: 'actions' },
             ], API.daemonset, 'daemonsets', '服务守护进程');
-        this.extendItems = [
-            
-        ];
+            this.extendItems = [];
     }
 }
 export class DeploymentTable extends DataTable {
@@ -182,5 +182,15 @@ export class PodTable extends DataTable {
         this.waiting[pod.name] = Utils.getPodWaiting(pod);
     }
 }
+export class ConfigMapTable extends DataTable {
+    constructor() {
+        super([{ text: '名字', value: 'name' },
+               { text: '数据个数', value: 'data_nums' },
 
+            ], API.configmap, 'configmaps', '节点');
+            this.extendItems = [
+                   { text: '数据', value: 'data_list' },
+            ]
+    }
+}
 export default DataTable;

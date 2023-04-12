@@ -8,6 +8,7 @@ from kubevision.common import conf
 from kubevision.k8s import objects
 from kubevision.common import constants
 from kubevision.common import exceptions
+from kubernetes.stream import stream
 
 CONF = conf.CONF
 LOG = logging.getLogger(__name__)
@@ -20,7 +21,6 @@ class ClientWrapper(object):
     def __init__(self):
         self.api = client.CoreV1Api()
         self.api_client = client.ApiClient()
-
         self.apps_api = client.AppsV1Api()
 
     def list_namespace(self):
@@ -121,7 +121,6 @@ class ClientWrapper(object):
     def replace_daemonset(self, name, body, ns=None, **kwargs):
         LOG.info('replace ds %s', name)
         # self.apps_api.replace_namespaced_daemon_set(name, ns, body, **kwargs)
-        # import pdb; pdb.set_trace()
         return self.apps_api.replace_namespaced_daemon_set(
             name, ns or constants.DEFAULT_NAMESPACE, body,
             **kwargs)
@@ -149,20 +148,30 @@ class ClientWrapper(object):
         return self.api.delete_namespaced_pod(
             name, ns or constants.DEFAULT_NAMESPACE)
 
-    def get_pod_logs(self, name, ns=None, **kwargs):
+    def get_pod_logs(self, name, ns=None, tail_lines=None, **kwargs):
         return self.api.read_namespaced_pod_log(
             name, ns or constants.DEFAULT_NAMESPACE,
+            tail_lines=tail_lines,
             **kwargs)
 
     def exec_on_pod(self, name, command, ns=None, container=None, async_req=False, **kwargs):
-        from kubernetes.stream import stream
-        # import pdb; pdb.set_trace()
         result = stream(self.api.connect_post_namespaced_pod_exec,
                         name, ns, command=['/bin/sh', '-c', command],
                         container=container, stdout=True, stderr=True, tty=False,
                         async_req=async_req,
                         **kwargs)
         return async_req and result.get() or result
+
+    def list_configmap(self, ns=None):
+        return [
+            objects.ConfigMap.from_object(obj)
+            for obj in self.api.list_namespaced_config_map(
+                ns or constants.DEFAULT_NAMESPACE
+            ).items
+        ]
+
+    def get_cluster_info(self):
+        return {}
 
 
 def init(kube_config: pathlib.Path):
