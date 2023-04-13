@@ -14,3 +14,4 @@
 - [X] 支持Pod执行命令
 - [X] 支持历史命令
 - [X] 支持 ConfigMap 查询
+- [X] 支持 Service 查询

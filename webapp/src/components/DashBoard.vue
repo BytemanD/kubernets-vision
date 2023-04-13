@@ -58,11 +58,11 @@ const navigationGroup = [
     items: [
       { title: '概览', icon: 'mdi-alpha-o-circle', router: '/overview' },
       { title: '命名空间', icon: 'mdi-alpha-n-circle', router: '/namespace' },
-      { title: '节点', icon: 'mdi-server', router: '/node' },
+      { title: '节点', icon: 'mdi-alpha-h-circle', router: '/node' },
     ]
   },
   {
-    name: '资源',
+    name: '负载',
     items: [
       { title: 'DaemonSet', icon: 'mdi-alpha-s-circle', router: '/daemonset' },
       { title: 'Deployment', icon: 'mdi-alpha-d-circle', router: '/deployment' },

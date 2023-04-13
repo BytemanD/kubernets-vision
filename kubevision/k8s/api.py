@@ -22,6 +22,7 @@ class ClientWrapper(object):
         self.api = client.CoreV1Api()
         self.api_client = client.ApiClient()
         self.apps_api = client.AppsV1Api()
+        self.version_api = client.VersionApi()
 
     def list_namespace(self):
         return [
@@ -107,7 +108,9 @@ class ClientWrapper(object):
     def list_daemonset(self, ns=None):
         return [
             objects.DaemonSet.from_object(obj)
-            for obj in self.apps_api.list_namespaced_daemon_set(ns).items
+            for obj in self.apps_api.list_namespaced_daemon_set(
+                ns or constants.DEFAULT_NAMESPACE
+            ).items
         ]
 
     def get_daemonset(self, name, ns=None):
@@ -170,8 +173,32 @@ class ClientWrapper(object):
             ).items
         ]
 
+    def get_version(self):
+        return self.version_api.get_code()
+
     def get_cluster_info(self):
-        return {}
+        config = get_config()
+        return  {
+            'config': {
+                'host': config.host,
+                'verify_ssl': config.verify_ssl,
+            },
+            'version': self.version_api.get_code().to_dict(),
+            'current_context': get_current_context(),
+        } 
+
+
+def get_config():
+    return config.kube_config.Configuration._default
+
+
+def get_current_context():
+    _, context = config.list_kube_config_contexts()
+    return context
+
+
+def get_host():
+    return config.kube_config.Configuration._default.host
 
 
 def init(kube_config: pathlib.Path):
