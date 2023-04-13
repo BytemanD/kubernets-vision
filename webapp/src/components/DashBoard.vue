@@ -35,6 +35,7 @@
         </v-select>
       </v-toolbar-title>
       <v-spacer></v-spacer>
+      <BtnNew />
       <BtnTheme />
       <BtnAbout />
     </v-app-bar>
@@ -47,10 +48,12 @@
 </template>
 
 <script>
+import { Utils } from '@/assets/app/utils';
 import { NamespaceTable } from '@/assets/app/tables';
+
 import BtnTheme from './plugins/BtnTheme.vue';
 import BtnAbout from './plugins/BtnAbout.vue';
-import { Utils } from '@/assets/app/utils';
+import BtnNew from './plugins/BtnNew.vue';
 
 const navigationGroup = [
   {
@@ -74,7 +77,7 @@ const navigationGroup = [
 
 export default {
   components: {
-    BtnTheme, BtnAbout
+    BtnTheme, BtnAbout, BtnNew,
   },
 
   data: () => ({

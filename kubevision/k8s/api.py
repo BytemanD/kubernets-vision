@@ -14,6 +14,7 @@ CONF = conf.CONF
 LOG = logging.getLogger(__name__)
 
 CLIENT = None
+KUBE_CONFIG = None
 
 
 class ClientWrapper(object):
@@ -193,7 +194,9 @@ def get_config():
 
 
 def get_current_context():
-    _, context = config.list_kube_config_contexts()
+    global KUBE_CONFIG
+
+    _, context = config.list_kube_config_contexts(str(KUBE_CONFIG))
     return context
 
 
@@ -203,7 +206,7 @@ def get_host():
 
 def init(kube_config: pathlib.Path):
     # sourcery skip: instance-method-first-arg-name
-    global CLIENT
+    global CLIENT, KUBE_CONFIG
 
     if isinstance(kube_config, str):
         kube_config = pathlib.Path(kube_config)
@@ -213,4 +216,6 @@ def init(kube_config: pathlib.Path):
 
     config.kube_config.load_kube_config(config_file=str(kube_config))
 
+    KUBE_CONFIG = kube_config
     CLIENT = ClientWrapper()
+    LOG.info('current context: %s', get_current_context())
