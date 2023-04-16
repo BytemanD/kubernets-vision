@@ -42,7 +42,7 @@
                         </template>
                         <v-list dense>
                             <v-list-item @click="describeDaemonSet(item)">
-                                <v-list-item-title>描述</v-list-item-title>
+                                <v-list-item-title>YAML</v-list-item-title>
                             </v-list-item>
                             <v-list-item @click="replaceDaemonSet(item)">
                                 <v-list-item-title class="orange--text">替换</v-list-item-title>

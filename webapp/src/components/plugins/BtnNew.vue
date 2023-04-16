@@ -6,20 +6,17 @@
                     <v-icon>mdi-plus</v-icon>
                 </v-btn>
             </template>
-            新建工作负载
+            新建
         </v-tooltip>
         <v-dialog v-model="display" width="800" scrollable>
             <v-card>
-                <v-card-title class="primary">
-                    创建工作负载
-                    <v-spacer></v-spacer>
-                    <v-btn>创建</v-btn>
-                </v-card-title>
                 <v-card-text class="pa-1">
-                    <v-textarea class="mt-1" outlined v-model='workflow' placeholder="请输入工作负载配置(目前仅支持yaml格式)"></v-textarea>
+                    <v-textarea class="mt-1" outlined rows="16" v-model='workflow' placeholder="请输入配置(备注:目前仅支持yaml格式)"></v-textarea>
                 </v-card-text>
                 <v-divider></v-divider>
                 <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="commit()">创建</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -28,6 +25,7 @@
 
 <script>
 import API from '@/assets/app/api';
+import MESSAGE from '@/assets/app/message';
 
 export default {
     data: () => ({
@@ -37,12 +35,10 @@ export default {
     methods: {
         onclickCallback: function () {
             this.display = !this.display;
-            if (this.display) {
-                this.getVersion();
-            }
         },
-        getVersion: async function () {
-            this.version = (await API.version.get()).version;
+        commit: async function(){
+            await API.createWorkload(this.workflow);
+            MESSAGE.success('创建成功')
         }
     },
     created() {

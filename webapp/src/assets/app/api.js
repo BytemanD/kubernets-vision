@@ -73,6 +73,7 @@ class Restfulclient {
             return resp.data
         } catch (error){
             this._alertAndTrow(error);
+            throw error;
         }
     }
     async put(id, body) {
@@ -183,6 +184,9 @@ export class Api {
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});
+    }
+    async createWorkload(text){
+        return await this.action.post({createWorkload: {'workload': text}})
     }
 }
 

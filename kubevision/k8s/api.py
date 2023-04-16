@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import re
 
 from kubernetes import client, config
 from kubernetes.client.models import v1_daemon_set
@@ -15,6 +16,9 @@ LOG = logging.getLogger(__name__)
 
 CLIENT = None
 KUBE_CONFIG = None
+
+UPPER_FOLLOWED_BY_LOWER_RE = re.compile('(.)([A-Z][a-z]+)')
+LOWER_OR_NUM_FOLLOWED_BY_UPPER_RE = re.compile('([a-z0-9])([A-Z])')
 
 
 class ClientWrapper(object):
@@ -209,6 +213,40 @@ class ClientWrapper(object):
             'version': self.version_api.get_code().to_dict(),
             'current_context': get_current_context(),
         } 
+
+    def create_workload(self, yaml_file):
+        import yaml
+        with open(yaml_file) as f:
+            yaml_doc = yaml.safe_load(f)
+
+        print(yaml_doc)
+        kind = yaml_doc.get('kind')
+        if not kind:
+            raise exceptions.KindNotFound()
+
+        kind = UPPER_FOLLOWED_BY_LOWER_RE.sub(r'\1_\2', kind)
+        kind = LOWER_OR_NUM_FOLLOWED_BY_UPPER_RE.sub(r'\1_\2', kind).lower()
+
+        create_func = None
+        create_with_namespce = False
+        for api_client in [self.apps_api, self.api]:
+            if hasattr(api_client, f'create_namespaced_{kind}'):
+                create_func = getattr(api_client, f'create_namespaced_{kind}')
+                create_with_namespce = True
+                break
+            elif hasattr(api_client, f'create_{kind}'):
+                create_func = getattr(api_client)
+                create_with_namespce = False
+                break
+
+        if not create_func:
+            raise exceptions.NotSupportKind(kind=kind)
+        if not create_with_namespce:
+            return create_func(yaml_doc)
+
+        namespace =yaml_doc.get(
+            'metadata', {}).get('namespace', constants.DEFAULT_NAMESPACE)
+        return create_func(namespace, yaml_doc)
 
 
 def get_config():

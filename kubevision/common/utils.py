@@ -1,10 +1,12 @@
 from pbr import version
 import functools
 import logging
+import tempfile
+import os
+import contextlib
+
 import requests
-
 from kubernetes.client import exceptions
-
 from easy2use.common import pkg
 
 from kubevision.common import constants
@@ -150,3 +152,19 @@ def format_time(obj, key, str_format='%Y-%m-%d %H:%M:%S'):
 def get_version():
     info = version.VersionInfo(constants.NAME)
     return info.release_string()
+
+
+# TODO: use from eas2use
+@contextlib.contextmanager
+def make_temp_file(content):
+    file_fd, file_path = tempfile.mkstemp()
+
+    try:
+        with os.fdopen(file_fd, 'w') as f:
+            f.write(content)
+        yield file_path
+    finally:
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            LOG.warning('delete file %s failed, %s', file_path, e)

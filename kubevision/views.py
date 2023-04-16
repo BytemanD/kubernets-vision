@@ -1,7 +1,6 @@
 import json
 import logging
 import yaml
-import inspect
 
 from tornado import web
 from kubevision.k8s import api
@@ -19,7 +18,8 @@ CONF = conf.CONF
 CONF_DB_API = None
 RUN_AS_CONTAINER = False
 ROUTES = []
-EXEC_HOSTORY = [];
+EXEC_HOSTORY = []
+
 
 def registry_route(url):
 
@@ -128,7 +128,7 @@ class Namespace(wsgi.BaseReqHandler, ObjectMixin):
         namespace = api.CLIENT.get_namespace(name)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
-            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
         if not fmt or fmt == 'json':
             result = objects.Namespace.from_object(namespace).__dict__
         elif fmt == 'yaml':
@@ -165,7 +165,7 @@ class Deployment(wsgi.RequestContext, ObjectMixin):
         deploy = api.CLIENT.get_deploy(name, ns=context.namespace)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
-            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
         if not fmt or fmt == 'json':
             result = objects.Deployment.from_object(deploy).__dict__
         elif fmt == 'yaml':
@@ -187,7 +187,7 @@ class Daemonset(wsgi.RequestContext, ObjectMixin):
         daemonset = api.CLIENT.get_daemonset(name, ns=context.namespace)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
-            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
         if not fmt or fmt == 'json':
             result = objects.DaemonSet.from_object(daemonset).__dict__
         elif fmt == 'yaml':
@@ -221,11 +221,12 @@ class Daemonset(wsgi.RequestContext, ObjectMixin):
         ds = api.CLIENT.get_daemonset(daemonset, ns=context.namespace)
         if containers:
             for container in ds.spec.template.spec.containers:
-                new_image =  containers.get(container.name, {}).get('image')
+                new_image = containers.get(container.name, {}).get('image')
                 if not new_image:
                     continue
                 container.image = new_image
-                LOG.info('container %s new image: %s', container.name, container.image)
+                LOG.info('container %s new image: %s',
+                         container.name, container.image)
 
         if force:
             # TODO
@@ -255,7 +256,7 @@ class Pod(wsgi.RequestContext, ObjectMixin):
         pod = api.CLIENT.get_pod(name, ns=context.namespace)
         fmt = self.get_argument('format', 'json')
         if fmt and fmt not in ['json', 'yaml']:
-            raise exceptions.ApiException(400, f'format {fmt} is invalid')
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
         if not fmt or fmt == 'json':
             result = objects.Pod.from_object(pod).__dict__
         elif fmt == 'yaml':
@@ -334,7 +335,7 @@ class Action(wsgi.BaseAction):
     @utils.register_action('exec')
     def _action_exec_on_pod(self, context, data):
         if 'pod' not in data or 'command' not in data:
-            raise exceptions.ApiException(400, 'pod and command must set')
+            raise exceptions.InvalidRequest('pod and command must set')
         result = api.CLIENT.exec_on_pod(data.get('pod'), data.get('command'),
                                         ns=context.namespace,
                                         container=data.get('container'))
@@ -346,7 +347,7 @@ class Action(wsgi.BaseAction):
 
         exec = data.get('exec', '').strip()
         if not exec:
-            raise exceptions.ApiException(400, 'exec is empty')
+            raise exceptions.InvalidRequest('exec is empty')
         if exec not in EXEC_HOSTORY:
             EXEC_HOSTORY.insert(0, exec)
 
@@ -372,6 +373,22 @@ class Action(wsgi.BaseAction):
     @utils.register_action('getClusterInfo')
     def _action_get_cluster_info(self, context, data):
         return {'cluster_info': api.CLIENT.get_cluster_info()}
+
+    @utils.register_action('createWorkload')
+    def _action_create_workload(self, context, data):
+        # sourcery skip: raise-from-previous-error
+        workload_doc = data.get('workload')
+        if not workload_doc:
+            raise exceptions.InvalidYaml()
+
+        with utils.make_temp_file(workload_doc) as file:
+            LOG.debug('template file: %s', file)
+            try:
+                api.CLIENT.create_workload(file)
+            except AttributeError:
+                raise exceptions.InvalidYaml()
+            except exceptions.KindNotFound as e:
+                raise exceptions.InvalidRequest(str(e))
 
 
 class Configs(web.RequestHandler):
