@@ -15,6 +15,9 @@
                 <template v-slot:[`item.data_nums`]="{ item }">
                     <v-chip x-small label>{{ item.data_list.length }}</v-chip>
                 </template>
+                <template v-slot:[`item.creation`]="{ item }">
+                    {{ item.creation.timestamp }}
+                </template>
                 <template v-slot:[`item.actions`]="{ item }">
                     <v-menu offset-y>
                         <template v-slot:activator="{ on, attrs }">
@@ -47,7 +50,7 @@
 <script>
 import { ConfigMapTable } from '@/assets/app/tables';
 
-import TableRefreshBtn from '../plugins/TableRefreshBtn.vue';
+import TableRefreshBtn from '../../plugins/TableRefreshBtn.vue';
 
 export default {
     components: {

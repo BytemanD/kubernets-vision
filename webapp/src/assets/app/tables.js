@@ -103,6 +103,7 @@ export class NodeTable extends DataTable {
                { text: 'CPU', value: 'cpu' },
                { text: '内存', value: 'memory' },
                { text: '系统', value: 'os_image' },
+               { text: '创建时间', value: 'creation' },
                { text: '操作', value: 'actions' },
             ], API.node, 'nodes', '节点');
             this.extendItems = [
@@ -127,6 +128,7 @@ export class NamespaceTable extends DataTable {
         super([{ text: '名字', value: 'name' },
                { text: '状态', value: 'status' },
                { text: '标签', value: 'labels' },
+               { text: '创建时间', value: 'creation' },
                { text: '操作', value: 'actions' },
               ], API.namespace, 'namespaces', '命名空间');
     }
@@ -142,6 +144,7 @@ export class DaemonsetTable extends DataTable {
                { text: 'node_selector', value: 'node_selector' },
                { text: 'selector', value: 'selector' },
                { text: 'containers', value: 'containers' },
+               { text: '创建时间', value: 'creation' },
                { text: '操作', value: 'actions' },
             ], API.daemonset, 'daemonsets', '服务守护进程');
             this.extendItems = [];
@@ -153,6 +156,7 @@ export class DeploymentTable extends DataTable {
                { text: 'Ready', value: 'ready' },
                { text: 'available', value: 'available_replicas' },
                { text: 'containers', value: 'containers' },
+               { text: '创建时间', value: 'creation' },
                { text: '操作', value: 'actions' },
         ], API.deployment, 'deployments', '服务守护进程');
         this.extendItems = [
@@ -169,6 +173,7 @@ export class PodTable extends DataTable {
             { text: 'node_name', value: 'node_name' },
             { text: 'pod_ip', value: 'pod_ip' },
             { text: 'containers', value: 'containers' },
+            { text: '创建时间', value: 'creation' },
             { text: '操作', value: 'actions' },
         ], API.pod, 'pods', 'Pod');
         this.extendItems = [
@@ -186,7 +191,7 @@ export class ConfigMapTable extends DataTable {
     constructor() {
         super([{ text: '名字', value: 'name' },
                { text: '数据个数', value: 'data_nums' },
-
+               { text: '创建时间', value: 'creation' },
             ], API.configmap, 'configmaps', '节点');
             this.extendItems = [
                    { text: '数据', value: 'data_list' },
@@ -201,8 +206,8 @@ export class ServiceTable extends DataTable {
                { text: 'IP列表', value: 'cluster_i_ps' },
                { text: 'IP栈', value: 'ip_families' },
                { text: '端口', value: 'ports' },
+               { text: '创建时间', value: 'creation' },
                { text: '操作', value: 'actions' },
-
             ], API.service, 'services', '服务');
             this.extendItems = [
                    { text: '数据', value: 'data_list' },

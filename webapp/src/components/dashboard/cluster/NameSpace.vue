@@ -11,6 +11,9 @@
       <v-data-table dense :headers="table.headers" :loading="table.refreshing"  :items="table.items" item-key="name"
         :items-per-page="table.itemsPerPage" :search="table.search"
         show-select v-model="table.selected" show-expand single-expand>
+        <template v-slot:[`item.creation`]="{ item }">
+          {{ item.creation.timestamp }}
+        </template>
         <template v-slot:[`item.labels`]="{ item }">
           <v-chip x-small label v-bind:key="key" v-for="value, key in item.labels" class="mr-2">{{ key}}={{value}}</v-chip>
         </template>
@@ -39,8 +42,8 @@
 <script>
 
 import { NamespaceTable } from '@/assets/app/tables';
-import TableRefreshBtn from '../plugins/TableRefreshBtn';
-import DescribeResource from './dialogs/DescribeResource.vue';
+import TableRefreshBtn from '../../plugins/TableRefreshBtn';
+import DescribeResource from '../dialogs/DescribeResource.vue';
 
  export default {
     components: {

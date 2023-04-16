@@ -14,8 +14,11 @@
             <v-data-table dense :headers="table.headers" :loading="table.refreshing" :items="table.items" item-key="name"
                 :items-per-page="table.itemsPerPage" :search="table.search" show-select v-model="table.selected" show-expand
                 single-expand>
+                <template v-slot:[`item.creation`]="{ item }">
+                    {{ item.creation.timestamp }}
+                </template>
                 <template v-slot:[`item.ready`]="{ item }">
-                    <v-icon color="success" v-if="item.ready =='True'">mdi-check-circle</v-icon>
+                    <v-icon color="success" v-if="item.ready == 'True'">mdi-check-circle</v-icon>
                     <v-icon color="error" v-else>mdi-close-circle</v-icon>
                 </template>
                 <template v-slot:[`item.cpu`]="{ item }">
@@ -71,9 +74,10 @@
 
 <script>
 import { NodeTable } from '@/assets/app/tables';
-import TableRefreshBtn from '../plugins/TableRefreshBtn';
-import SetNodeLabel from './SetNodeLabel';
-import DescribeResource from './dialogs/DescribeResource.vue';
+import TableRefreshBtn from '../../plugins/TableRefreshBtn';
+import DescribeResource from '../dialogs/DescribeResource.vue';
+import SetNodeLabel from './dialogs/SetNodeLabel';
+
 import { Utils } from '@/assets/app/utils'
 
 export default {

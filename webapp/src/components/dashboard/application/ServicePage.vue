@@ -12,9 +12,12 @@
             <v-data-table dense :headers="table.headers" :loading="table.refreshing" :items="table.items" item-key="name"
                 :items-per-page="table.itemsPerPage" :search="table.search" show-select v-model="table.selected" show-expand
                 single-expand>
+                <template v-slot:[`item.creation`]="{ item }">
+                    {{ item.creation.timestamp }}
+                </template>
                 <template v-slot:[`item.ports`]="{ item }">
                     <v-chip x-small color="indigo" text-color="white" v-for="port in item.ports" v-bind:key="port.port">
-                        {{  port.protocol }} {{ port.target_port }}:{{ port.port }}
+                        {{ port.protocol }} {{ port.target_port }}:{{ port.port }}
                     </v-chip>
                 </template>
                 <template v-slot:[`item.actions`]="{ item }">

@@ -15,6 +15,9 @@
             <v-data-table dense :headers="table.headers" :loading="table.refreshing" :items="table.items" item-key="name"
                 :items-per-page="table.itemsPerPage" :search="table.search" show-select v-model="table.selected" show-expand
                 single-expand>
+                <template v-slot:[`item.creation`]="{ item }">
+                    {{ item.creation.timestamp }}
+                </template>
                 <template v-slot:[`item.ready`]="{ item }">
                     <span class="error--text" v-if="item.number_ready < item.desired_number_scheduled">{{ item.number_ready }}/{{ item.desired_number_scheduled }}</span>
                     <span class="success--text" v-else>{{ item.number_ready }}/{{ item.desired_number_scheduled }}</span>
@@ -99,10 +102,10 @@
 import { Utils } from '@/assets/app/utils';
 
 import { DaemonsetTable } from '@/assets/app/tables';
-import TableRefreshBtn from '../../plugins/TableRefreshBtn';
+import TableRefreshBtn from '../../../plugins/TableRefreshBtn';
 
-import DescribeResource from '../dialogs/DescribeResource.vue';
-import ReplaceResource from '../dialogs/ReplaceResource.vue';
+import DescribeResource from '../../dialogs/DescribeResource.vue';
+import ReplaceResource from '../../dialogs/ReplaceResource.vue';
 
 export default {
     components: {

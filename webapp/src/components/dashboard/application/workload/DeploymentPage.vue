@@ -15,7 +15,9 @@
       <v-data-table dense :headers="table.headers" :loading="table.refreshing" :items="table.items" item-key="name"
         :items-per-page="table.itemsPerPage" :search="table.search" show-select v-model="table.selected" show-expand
         single-expand>
-
+        <template v-slot:[`item.creation`]="{ item }">
+          {{ item.creation.timestamp }}
+        </template>
         <template v-slot:[`item.ready`]="{ item }">
           <span class="error--text" v-if="item.ready_replicas < item.replicas">
             {{ item.ready_replicas }}/{{ item.replicas }}
@@ -98,8 +100,8 @@
 import { Utils } from '@/assets/app/utils';
 import { DeploymentTable } from '@/assets/app/tables';
 
-import TableRefreshBtn from '../../plugins/TableRefreshBtn.vue';
-import DescribeResource from '../dialogs/DescribeResource.vue';
+import TableRefreshBtn from '../../../plugins/TableRefreshBtn.vue';
+import DescribeResource from '../../dialogs/DescribeResource.vue';
 
 export default {
   components: {

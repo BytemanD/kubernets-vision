@@ -9,19 +9,24 @@ import MESSAGE from './assets/app/message';
 import App from './App.vue'
 import ErrorPage from './ErrorPage.vue'
 
-import OverviewPage from './components/dashboard/OverviewPage'
-import NodePage from './components/dashboard/NodePage';
-import NameSpace from './components/dashboard/NameSpace';
-import WorkloadPage from './components/dashboard/WorkloadPage';
-import PodPage from './components/dashboard/PodPage';
-import ConfigMapPage from './components/dashboard/ConfigMapPage'
+// cluster
+import OverviewPage from './components/dashboard/cluster/OverviewPage'
+import NodePage from './components/dashboard/cluster/NodePage';
+import NameSpace from './components/dashboard/cluster/NameSpace';
+// application -> workload
+import WorkloadPage from './components/dashboard/application/WorkloadPage';
+import DeploymentPage from './components/dashboard/application/workload/DeploymentPage';
+import DaemonSet from './components/dashboard/application/workload/DaemonSet';
+import CronJobPage from './components/dashboard/application/workload/CronJobPage';
+import JobPage from './components/dashboard/application/workload/JobPage';
+import StatefulSetPage from './components/dashboard/application/workload/StatefulSetPage';
+// application -> pod
+import PodPage from './components/dashboard/application/pod/PodPage';
+// application -> config
 import ServicePage from './components/dashboard/application/ServicePage';
 
-import DeploymentPage from './components/dashboard/workload/DeploymentPage';
-import DaemonSet from './components/dashboard/workload/DaemonSet';
-import CronJobPage from './components/dashboard/workload/CronJobPage';
-import JobPage from './components/dashboard/workload/JobPage';
-import StatefulSetPage from './components/dashboard/workload/StatefulSetPage';
+// config
+import ConfigMapPage from './components/dashboard/config/ConfigMapPage'
 
 Vue.use(VueRouter)
 
