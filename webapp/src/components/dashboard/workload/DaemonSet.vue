@@ -99,10 +99,10 @@
 import { Utils } from '@/assets/app/utils';
 
 import { DaemonsetTable } from '@/assets/app/tables';
-import TableRefreshBtn from '../plugins/TableRefreshBtn';
+import TableRefreshBtn from '../../plugins/TableRefreshBtn';
 
-import DescribeResource from './dialogs/DescribeResource.vue';
-import ReplaceResource from './dialogs/ReplaceResource.vue';
+import DescribeResource from '../dialogs/DescribeResource.vue';
+import ReplaceResource from '../dialogs/ReplaceResource.vue';
 
 export default {
     components: {

@@ -123,7 +123,15 @@ class Pod extends Restfulclient {
 class ConfigMap extends Restfulclient {
     constructor() { super('/configmap') }
 }
-
+class Service extends Restfulclient {
+    constructor() { super('/service') }
+}
+class Cronjob extends Restfulclient {
+    constructor() { super('/cronjob') }
+}
+class Job extends Restfulclient {
+    constructor() { super('/job') }
+}
 class Action extends Restfulclient {
     constructor() { super('/action') }
 
@@ -169,6 +177,9 @@ export class Api {
         this.action = new Action();
         this.version = new Version();
         this.configmap = new ConfigMap();
+        this.service = new Service();
+        this.cronJob = new Cronjob();
+        this.job = new Job();
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});

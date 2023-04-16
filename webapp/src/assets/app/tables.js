@@ -193,4 +193,42 @@ export class ConfigMapTable extends DataTable {
             ]
     }
 }
+export class ServiceTable extends DataTable {
+    constructor() {
+        super([{ text: '名字', value: 'name' },
+               { text: '类型', value: 'type' },
+               { text: 'IP', value: 'cluster_ip' },
+               { text: 'IP列表', value: 'cluster_i_ps' },
+               { text: 'IP栈', value: 'ip_families' },
+               { text: '端口', value: 'ports' },
+               { text: '操作', value: 'actions' },
+
+            ], API.service, 'services', '服务');
+            this.extendItems = [
+                   { text: '数据', value: 'data_list' },
+            ]
+    }
+}
+export class Cronjob extends DataTable {
+    constructor() {
+        super([{ text: '名字', value: 'name' },
+               { text: '数据个数', value: 'data_nums' },
+
+            ], API.cronJob, 'cronJobs', '定时任务');
+            this.extendItems = [
+                   { text: '数据', value: 'data_list' },
+            ]
+    }
+}
+export class Job extends DataTable {
+    constructor() {
+        super([{ text: '名字', value: 'name' },
+               { text: '数据个数', value: 'data_nums' },
+
+            ], API.job, 'jobs', '任务');
+            this.extendItems = [
+                   { text: '数据', value: 'data_list' },
+            ]
+    }
+}
 export default DataTable;

@@ -212,6 +212,79 @@ class DaemonSet:
             init_containers=get_init_containers(obj),
         )
 
+@dataclass
+class StatusfulSet:
+    name: str
+
+    @classmethod
+    def from_object(cls, obj):
+        name = obj.metadata.name
+        labels = obj.metadata.labels
+        host_ip = obj.status.host_ip
+        pod_ip = obj.status.pod_ip
+        node_name = obj.spec.node_name
+        node_selector = obj.spec.node_selector
+        containers = [
+            {'name': container.name, 'image': container.image,
+             'command': container.command}
+            for container in obj.spec.containers
+        ]
+        container_statuses = get_container_statuses(obj)
+        return cls(
+            name=name, labels=labels, node_name=node_name,
+            node_selector=node_selector, host_ip=host_ip,
+            pod_ip=pod_ip, containers=containers,
+            container_statuses=container_statuses,
+            deletion=get_deletion(obj),
+        )
+
+
+@dataclass
+class CronJob:
+    name: str
+
+    @classmethod
+    def from_object(cls, obj):
+        name = obj.metadata.name
+        return cls(
+            name=name
+        )
+
+
+@dataclass
+class Job:
+    name: str
+
+    @classmethod
+    def from_object(cls, obj):
+        name = obj.metadata.name
+        return cls(
+            name=name
+        )
+
+
+@dataclass
+class Service:
+    name: str
+    type: str
+    cluster_ip: str
+    cluster_i_ps: list
+    internal_traffic_policy: str
+    ip_families: list
+    ports: list
+
+    @classmethod
+    def from_object(cls, obj):
+        return cls(
+            name=obj.metadata.name,
+            type=obj.spec.type,
+            cluster_ip=obj.spec.cluster_ip,
+            cluster_i_ps=obj.spec.cluster_i_ps,
+            internal_traffic_policy=obj.spec.internal_traffic_policy,
+            ip_families=obj.spec.ip_families,
+            ports=[port.to_dict() for port in obj.spec.ports],
+        )
+
 
 @dataclass
 class Pod:

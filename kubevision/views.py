@@ -269,6 +269,36 @@ class Pod(wsgi.RequestContext, ObjectMixin):
         api.CLIENT.delete_pod(name, ns=context.namespace)
 
 
+@registry_route(r'/service')
+class Service(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self):
+        context = self.get_context()
+        items = api.CLIENT.list_service(ns=context.namespace)
+        return {'services': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/cronjob')
+class Cronjob(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self):
+        context = self.get_context()
+        items = api.CLIENT.list_cron_job(ns=context.namespace)
+        return {'cronjobs': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/job')
+class Job(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self):
+        context = self.get_context()
+        items = api.CLIENT.list_service(ns=context.namespace)
+        return {'services': [item.__dict__ for item in items]}
+
+
 @registry_route(r'/configmap')
 class ConfigMaps(wsgi.RequestContext, ObjectMixin):
 

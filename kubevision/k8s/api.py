@@ -24,6 +24,7 @@ class ClientWrapper(object):
         self.api_client = client.ApiClient()
         self.apps_api = client.AppsV1Api()
         self.version_api = client.VersionApi()
+        self.batch_api = client.BatchV1Api()
 
     def list_namespace(self):
         return [
@@ -165,6 +166,27 @@ class ClientWrapper(object):
                         async_req=async_req,
                         **kwargs)
         return async_req and result.get() or result
+
+    def list_service(self, ns=None):
+        return [
+            objects.Service.from_object(service)
+            for service in self.api.list_namespaced_service(
+                ns or constants.DEFAULT_NAMESPACE).items
+        ] 
+
+    def list_cron_job(self, ns=None):
+        return [
+            objects.CronJob.from_object(cron_job)
+            for cron_job in self.batch_api.list_namespaced_cron_job(
+                ns or constants.DEFAULT_NAMESPACE).items
+        ]
+
+    def list_job(self, ns=None):
+        return [
+            objects.Job.from_object(job)
+            for job in self.batch_api.list_namespaced_job(
+                ns or constants.DEFAULT_NAMESPACE).items
+        ]
 
     def list_configmap(self, ns=None):
         return [

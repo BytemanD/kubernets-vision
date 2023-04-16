@@ -98,8 +98,8 @@
 import { Utils } from '@/assets/app/utils';
 import { DeploymentTable } from '@/assets/app/tables';
 
-import TableRefreshBtn from '../plugins/TableRefreshBtn';
-import DescribeResource from './dialogs/DescribeResource.vue';
+import TableRefreshBtn from '../../plugins/TableRefreshBtn.vue';
+import DescribeResource from '../dialogs/DescribeResource.vue';
 
 export default {
   components: {

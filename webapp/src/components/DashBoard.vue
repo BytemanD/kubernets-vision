@@ -13,13 +13,13 @@
           <template v-for="group in navigation.group">
             <template>
               <v-subheader v-bind:key="group.name">
-                <h3 class="primary--text">{{ group.name }}</h3><v-divider></v-divider>
+                <h3 class="primary--text">{{ i18n.t(group.name) }}</h3><v-divider></v-divider>
               </v-subheader>
               <v-list-item v-for="item in group.items" v-bind:key="item.router"
                 :disabled="navigation.selectedItem.router == item.router" @click="selectItem(item)">
                 <v-list-item-icon><v-icon>{{ item.icon }}</v-icon></v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>{{ item.title }}</v-list-item-title>
+                  <v-list-item-title>{{ i18n.t(item.title) }}</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
             </template>
@@ -50,27 +50,32 @@
 <script>
 import { Utils } from '@/assets/app/utils';
 import { NamespaceTable } from '@/assets/app/tables';
-
+import i18n from '@/assets/app/i18n';
 import BtnTheme from './plugins/BtnTheme.vue';
 import BtnAbout from './plugins/BtnAbout.vue';
 import BtnNew from './plugins/BtnNew.vue';
 
 const navigationGroup = [
   {
-    name: '集群',
+    name: 'cluster',
     items: [
-      { title: '概览', icon: 'mdi-alpha-o-circle', router: '/overview' },
-      { title: '命名空间', icon: 'mdi-alpha-n-circle', router: '/namespace' },
-      { title: '节点', icon: 'mdi-alpha-h-circle', router: '/node' },
+      { title: 'overview', icon: 'mdi-alpha-o-circle', router: '/overview' },
+      { title: 'namespace', icon: 'mdi-alpha-n-circle', router: '/namespace' },
+      { title: 'node', icon: 'mdi-alpha-h-circle', router: '/node' },
     ]
   },
   {
-    name: '负载',
+    name: 'application',
     items: [
-      { title: 'DaemonSet', icon: 'mdi-alpha-s-circle', router: '/daemonset' },
-      { title: 'Deployment', icon: 'mdi-alpha-d-circle', router: '/deployment' },
-      { title: 'Pod', icon: 'mdi-alpha-p-circle', router: '/pod' },
-      { title: 'ConfigMap', icon: 'mdi-alpha-c-circle', router: '/configmap' },
+      { title: 'workload', icon: 'mdi-alpha-w-circle', router: '/workload' },
+      { title: 'pod', icon: 'mdi-alpha-p-circle', router: '/pod' },
+      { title: 'service', icon: 'mdi-alpha-s-circle', router: '/service' },
+    ]
+  },
+  {
+    name: 'configCenter',
+    items: [
+      { title: 'configMap', icon: 'mdi-alpha-c-circle', router: '/configmap' },
     ]
   },
 ]
@@ -83,6 +88,7 @@ export default {
   data: () => ({
     name: 'KubeVision',
     miniVariant: false,
+    i18n: i18n,
     ui: {
       navigationWidth: '200px'
     },
