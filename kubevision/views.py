@@ -45,7 +45,7 @@ class ObjectMixin(object):
             metadata['managed_fields'] = None
 
         status = obj_dict.get('status')
-        if 'conditions' in status:
+        if status and 'conditions' in status:
             for condition in status.get('conditions') or []:
                 utils.format_time(condition, 'last_heartbeat_time')
                 utils.format_time(condition, 'last_transition_time')
@@ -308,6 +308,26 @@ class ConfigMaps(wsgi.RequestContext, ObjectMixin):
         context = self.get_context()
         items = api.CLIENT.list_configmap(ns=context.namespace)
         return {'configmaps': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/configmap/(.+)')
+class ConfigMap(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        context = self.get_context()
+
+        fmt = self.get_argument('format', 'json')
+        configmap = api.CLIENT.get_configmap(name, ns=context.namespace)
+        # import pdb; pdb.set_trace()
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
+        if not fmt or fmt == 'json':
+            result = objects.ConfigMap.from_object(configmap,
+                                                   detail=True).__dict__
+        elif fmt == 'yaml':
+            result = self.to_yaml(configmap)
+        return {'configmap': result}
 
 
 @registry_route(r'/action')

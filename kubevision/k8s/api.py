@@ -200,6 +200,10 @@ class ClientWrapper(object):
             ).items
         ]
 
+    def get_configmap(self, name, ns=None):
+        return self.api.read_namespaced_config_map(
+                name, ns or constants.DEFAULT_NAMESPACE)
+
     def get_version(self):
         return self.version_api.get_code()
 

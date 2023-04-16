@@ -336,12 +336,14 @@ class Pod(BaseDataObject):
 
 @dataclass
 class ConfigMap(BaseDataObject):
-    data_list: dict
+    data_list: list
+    data: dict
 
     @classmethod
-    def from_object(cls, obj):
+    def from_object(cls, obj, detail=False):
         return cls(
             name=obj.metadata.name,
             creation=get_creation(obj),
             data_list=list(obj.data.keys()),
+            data=detail and obj.data or {}
         )

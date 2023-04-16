@@ -25,8 +25,11 @@
                                     small>mdi-dots-vertical</v-icon></v-btn>
                         </template>
                         <v-list dense>
-                            <v-list-item @click="describeNode(item)">
-                                <v-list-item-title>描述</v-list-item-title>
+                            <v-list-item @click="describeResource(item)">
+                                <v-list-item-title>YAML</v-list-item-title>
+                            </v-list-item>
+                            <v-list-item @click="showConfigMap(item)">
+                                <v-list-item-title>查看</v-list-item-title>
                             </v-list-item>
                         </v-list>
                     </v-menu>
@@ -44,6 +47,8 @@
                 </template>
             </v-data-table>
         </v-col>
+        <DescribeResource :show.sync="showDescribeDialog" resource-name='configmap' :resource="selectResource" />
+        <ShowConfigMap :show.sync="showConfigMapDialog" :resource="selectResource" />
     </v-row>
 </template>
 
@@ -51,21 +56,33 @@
 import { ConfigMapTable } from '@/assets/app/tables';
 
 import TableRefreshBtn from '../../plugins/TableRefreshBtn.vue';
+import ShowConfigMap from './dialogs/ShowConfigMap.vue';
+import DescribeResource from '../dialogs/DescribeResource.vue';
 
 export default {
     components: {
-        TableRefreshBtn
+        TableRefreshBtn,
+        DescribeResource, ShowConfigMap,
     },
     data: () => ({
         table: new ConfigMapTable(),
-        showSetDialog: false,
+        selectResource: null,
         showDescribeDialog: false,
-        selectNode: null,
+        showConfigMapDialog: false,
     }),
     methods: {
         refresh: async function () {
             this.table.refresh();
         },
+        describeResource: function (item) {
+            this.showDescribeDialog = !this.showDescribeDialog;
+            this.selectResource = item.name;
+        },
+        showConfigMap: function (item) {
+            this.showConfigMapDialog = !this.showConfigMapDialog;
+            console.log('xxxxxxxxx', this.showConfigMapDialog, item.name)
+            this.selectResource = item.name;
+        }
 
     },
     created: async function () {

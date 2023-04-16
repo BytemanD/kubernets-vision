@@ -192,6 +192,7 @@ export class ConfigMapTable extends DataTable {
         super([{ text: '名字', value: 'name' },
                { text: '数据个数', value: 'data_nums' },
                { text: '创建时间', value: 'creation' },
+               { text: '操作', value: 'actions' },
             ], API.configmap, 'configmaps', '节点');
             this.extendItems = [
                    { text: '数据', value: 'data_list' },
