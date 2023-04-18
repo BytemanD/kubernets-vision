@@ -4,6 +4,9 @@ import VueI18n from 'vue-i18n'
 import VueRouter from 'vue-router';
 import vuetify from './plugins/vuetify'
 
+// import highlightPlugin from "@highlightjs/vue-plugin";
+// import 'highlight.js/styles/dark.css';
+
 import MESSAGE from './assets/app/message';
 
 import App from './App.vue'
@@ -32,6 +35,8 @@ Vue.use(VueRouter)
 
 Vue.config.productionTip = false
 Vue.prototype.$MESSAGE = MESSAGE;
+
+// Vue.use(highlightPlugin);
 
 let router = new VueRouter({
     routes: [

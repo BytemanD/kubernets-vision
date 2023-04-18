@@ -1,7 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant"
-      width="200">
+    <v-navigation-drawer app permanent :expand-on-hover="miniVariant" :mini-variant="miniVariant" width="200">
       <v-list-item two-line class="px-2">
         <v-list-item-avatar class="ml-0" tile><img src="../../public/favicon.svg"></v-list-item-avatar>
         <v-list-item-content>
@@ -87,6 +86,7 @@ export default {
 
   data: () => ({
     name: 'KubeVision',
+    Utils: Utils,
     miniVariant: false,
     i18n: i18n,
     ui: {
@@ -108,37 +108,54 @@ export default {
         for (let itemIndx in group.items) {
           let item = group.items[itemIndx];
           itemIndex += 1;
-          if (this.$route.path != item.router) { continue }
-          this.selectItem(item);
-          this.navigation.itemIndex = itemIndex;
+          if (itemIndex != this.navigation.itemIndex){
+            continue
+          }
+          this.selectItem(item)
           return;
         }
       }
     },
     selectItem(item) {
-      localStorage.setItem('navigationSelectedItem', JSON.stringify(item));
+      Utils.setNavigationSelectedItem(item);
       this.navigation.selectedItem = item;
-      if (this.$route.path == '/' || this.$route.path != item.router) {
+      if (this.$route.path != item.router){
         this.$router.replace({ path: item.router });
       }
     },
-    setNamespace(){
+    setNamespace() {
       Utils.setNamespace(this.namespace);
       location.reload();
-    }
+    },
+    getItemIndexByRoutePath(routePath) {
+      let itemIndex = -1;
+      for (let groupIndex in this.navigation.group) {
+        let group = this.navigation.group[groupIndex];
+        for (let index in group.items) {
+          let item = group.items[index];
+          itemIndex += 1;
+          if (routePath == item.router) {
+            return itemIndex;
+          }
+        }
+      }
+    },
   },
   created() {
     this.namespace = Utils.getNamespace();
-    if (this.$route.path == '/') {
-      let localItem = localStorage.getItem('navigationSelectedItem');
-      if (localItem) {
-        this.selectItem(JSON.parse(localItem));
-      } else {
-        this.selectItem(navigationGroup[0].items[0]);
-      }
+    let itemIndex = null;
+    if (this.$route.path != '/') {
+        itemIndex = this.getItemIndexByRoutePath(this.$route.path);
     } else {
-      this.initItem();
+      let localItem = Utils.getNavigationSelectedItem();
+      if (localItem) {
+        itemIndex = this.getItemIndexByRoutePath(localItem.router);
+      }
     }
+    if (itemIndex != null){
+      this.navigation.itemIndex = itemIndex;
+    }
+    this.initItem();
     this.namespaceTable.refresh();
   }
 };

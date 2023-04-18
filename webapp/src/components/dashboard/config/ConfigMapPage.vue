@@ -80,7 +80,6 @@ export default {
         },
         showConfigMap: function (item) {
             this.showConfigMapDialog = !this.showConfigMapDialog;
-            console.log('xxxxxxxxx', this.showConfigMapDialog, item.name)
             this.selectResource = item.name;
         }
 

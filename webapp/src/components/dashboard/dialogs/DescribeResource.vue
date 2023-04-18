@@ -2,19 +2,26 @@
     <v-dialog v-model="display" width="1000" scrollable>
         <v-card>
             <v-card-title class="headline primary" primary-title>{{resourceName}}: {{ resource }}</v-card-title>
-            <v-card-text><pre>{{ yaml }}</pre></v-card-text>
+            <v-card-text>
+                <HighlightCode id="describeResource" :code="yaml" />
+                <!-- <pre><code>{{ yaml }}</code></pre> -->
+            </v-card-text>
         </v-card>
     </v-dialog>
 </template>
 
 <script>
 import API from '@/assets/app/api';
+import HighlightCode from '@/components/plugins/HighlightCode.vue';
 
 export default {
     props: {
         show: Boolean,
         resourceName: String,
         resource: String,
+    },
+    components: {
+        HighlightCode,
     },
     data: () => ({
         display: false,

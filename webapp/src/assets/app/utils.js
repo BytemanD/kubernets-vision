@@ -141,5 +141,12 @@ export class Utils {
             return memory
         }
     }
+    static getNavigationSelectedItem(){
+        let localItem = localStorage.getItem('navigationSelectedItem');
+        return localItem ? JSON.parse(localItem): null;
+    }
+    static setNavigationSelectedItem(item){
+        localStorage.setItem('navigationSelectedItem', JSON.stringify(item));
+    }
 
 }
