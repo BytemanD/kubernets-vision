@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass
-from dataclasses import field
 
 from kubernetes.client.models import v1_daemon_set
 
@@ -40,10 +39,11 @@ def get_init_containers(obj):
 
 
 def get_container_state(container_state):
+    waiting = container_state.waiting
     return {
-        'running': container_state.running != None,
-        'terminated': container_state.terminated != None,
-        'waiting': container_state.waiting.to_dict() if container_state.waiting else None,
+        'running': container_state.running is not None,
+        'terminated': container_state.terminated is not None,
+        'waiting': waiting and waiting.to_dict() or None,
     }
 
 

@@ -149,11 +149,6 @@ def format_time(obj, key, str_format='%Y-%m-%d %H:%M:%S'):
     setattr(obj, key, parse_datetime(getattr(obj, key)))
 
 
-def get_version():
-    info = version.VersionInfo(constants.NAME)
-    return info.release_string()
-
-
 # TODO: use from eas2use
 @contextlib.contextmanager
 def make_temp_file(content):

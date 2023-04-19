@@ -23,10 +23,6 @@ class NodeLabelExists(exs.BaseException):
     _msg = 'Label {label} exists in {node}'
 
 
-class NodeLabelExists(exs.BaseException):
-    _msg = 'Label {label} exists in {node}'
-
-
 class KindNotFound(exs.BaseException):
     _msg = 'Kind not found'
 

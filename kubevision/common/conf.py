@@ -1,7 +1,6 @@
 import os
 import socket
 import logging
-import pathlib
 
 from easy2use.globals import cfg
 from kubevision.common import constants

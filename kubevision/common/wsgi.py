@@ -14,7 +14,7 @@ CONF = conf.CONF
 
 
 class BaseReqHandler(web.RequestHandler):
-    
+
     def set_default_headers(self):
         super().set_default_headers()
         if CONF.enable_cross_domain:
@@ -30,14 +30,6 @@ class BaseReqHandler(web.RequestHandler):
 
     def _get_body(self):
         return json.loads(self.request.body)
-
-    def set_default_headers(self):
-        super().set_default_headers()
-        self.set_header('Access-Control-Allow-Origin', '*')
-        self.set_header('Access-Control-Allow-Headers', '*')
-        self.set_header('Access-Control-Allow-Max-Age', 1000)
-        self.set_header('Access-Control-Allow-Methods',
-                        'GET, POST, PUT, DELETE, OPTIONS')
 
     @utils.with_response(return_code=204)
     def options(self, *args, **kwargs):

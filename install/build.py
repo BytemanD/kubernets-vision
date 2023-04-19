@@ -21,6 +21,7 @@ LOG = logging.getLogger(__name__)
 
 step_num = 0
 
+
 def log_step(func):
     func_doc = inspect.getdoc(func)
     step_title = func_doc and func_doc.split('\n')[0] or func.__name__
@@ -85,7 +86,8 @@ class PyWebDockerBuilder(object):
         '''检查前端项目目录
         '''
         if not os.path.exists(self.frontend):
-            raise RuntimeError(f'frontend project {self.frontend} is not exists')
+            raise RuntimeError(
+                f'frontend project {self.frontend} is not exists')
 
     @log_step
     def prepare_build_resources(self, resources):
@@ -199,12 +201,12 @@ class PyWebDockerBuilder(object):
         return self.bacckend_file.split('-')[0]
 
     def build(self):
-        whl_name, whl_version = self.check_whl_file_and_version()
+        _, whl_version = self.check_whl_file_and_version()
         self.check_frontend()
 
         build_resources = self.get_build_resources()
         self.prepare_build_resources(build_resources)
-        
+
         self.update_config_json()
         self.update_favicon()
 

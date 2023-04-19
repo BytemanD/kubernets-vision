@@ -86,7 +86,7 @@ class ConfigJson(wsgi.BaseReqHandler):
 
 
 @registry_route(r'/version')
-class ConfigJson(wsgi.BaseReqHandler):
+class Version(wsgi.BaseReqHandler):
 
     @utils.with_response()
     def get(self):
@@ -271,13 +271,30 @@ class Pod(wsgi.RequestContext, ObjectMixin):
 
 
 @registry_route(r'/service')
-class Service(wsgi.RequestContext, ObjectMixin):
+class Services(wsgi.RequestContext, ObjectMixin):
 
     @utils.response
     def get(self):
         context = self.get_context()
         items = api.CLIENT.list_service(ns=context.namespace)
         return {'services': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/service/(.+)')
+class Service(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self, name):
+        context = self.get_context()
+        pod = api.CLIENT.get_service(name, ns=context.namespace)
+        fmt = self.get_argument('format', 'json')
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
+        if not fmt or fmt == 'json':
+            result = objects.Pod.from_object(pod).__dict__
+        elif fmt == 'yaml':
+            result = self.to_yaml(pod)
+        return {'service': result}
 
 
 @registry_route(r'/cronjob')

@@ -1,7 +1,3 @@
-import shutil
-import os
-
-from easy2use import fs
 from easy2use.common import msgfmt
 
 kubevision = 'kubevision'

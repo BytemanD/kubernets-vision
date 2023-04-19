@@ -1,21 +1,21 @@
 <template>
-    <v-dialog v-model="display" width="1200" scrollable>
+    <v-dialog v-model="display" scrollable>
         <v-card>
-            <v-card-text class="pt-2" height="500">
-                <v-row>
-                    <v-col cols="3">
-                        <v-list-item-group color="primary">
-                            <v-list-item v-for="(value, name) in configMap.data" v-bind:key="name" @click="selectConfigData(name)">
-                                <v-list-item-content>
-                                    <v-list-item-title >{{ name }}</v-list-item-title>
-                                </v-list-item-content>
-                            </v-list-item>
-                        </v-list-item-group>
-                    </v-col>
-                    <v-col cols="9">
-                        <HighlightCode id="configMapCode" :code="configMapData" />
-                    </v-col>
-                </v-row>
+            <v-toolbar>
+                <v-spacer></v-spacer>
+                <v-col cols="6">
+                    <v-switch hide-details label="高亮" v-model="hightlight"></v-switch>
+                </v-col>
+                <v-col cols="6">
+                    <v-select hide-details dense outlined prefix='配置:' v-model="selectConfigName"
+                        :items="Object.keys(configMap.data || {})"
+                        v-on:change="selectConfigData(selectConfigName)"></v-select>
+                </v-col>
+            </v-toolbar>
+            <v-card-text class="pt-2">
+                <div style="height: 480px">
+                    <HighlightCode id="configMapCode" :code="configMapData" :hightlight="hightlight" />
+                </div>
             </v-card-text>
         </v-card>
     </v-dialog>
@@ -39,8 +39,9 @@ export default {
         itemIndex: 0,
         configMap: {},
         key: null,
+        hightlight: false,
         selectConfigName: null,
-        configData: {data: {}},
+        configData: { data: {} },
         configMapData: '',
     }),
     methods: {
@@ -52,7 +53,7 @@ export default {
                 this.key = Object.keys(this.configMap.data)[0];
             }
         },
-        selectConfigData: function(name){
+        selectConfigData: function (name) {
             this.selectConfigName = name;
             this.configMapData = this.configMap.data[this.selectConfigName];
         }

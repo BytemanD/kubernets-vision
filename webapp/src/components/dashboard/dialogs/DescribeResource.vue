@@ -43,6 +43,8 @@ export default {
                     data = (await API.namespace.get(`${this.resource}?format=yaml`)).namespace; break;
                 case 'configmap':
                     data = (await API.configmap.get(`${this.resource}?format=yaml`)).configmap; break;
+                case 'service':
+                    data = (await API.service.get(`${this.resource}?format=yaml`)).service; break;
                 default:
                     throw Error(`未知的资源 ${this.resourceName}`);
             }

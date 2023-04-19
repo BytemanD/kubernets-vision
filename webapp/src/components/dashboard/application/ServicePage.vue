@@ -27,7 +27,7 @@
                                     small>mdi-dots-vertical</v-icon></v-btn>
                         </template>
                         <v-list dense>
-                            <v-list-item @click="describeNode(item)">
+                            <v-list-item @click="describeService(item)">
                                 <v-list-item-title>描述</v-list-item-title>
                             </v-list-item>
                         </v-list>
@@ -46,6 +46,7 @@
                 </template>
             </v-data-table>
         </v-col>
+        <DescribeResource :show.sync="showDescribeDialog" resource-name='service' :resource="selectResource.name" />
     </v-row>
 </template>
 
@@ -53,21 +54,27 @@
 import { ServiceTable } from '@/assets/app/tables';
 
 import TableRefreshBtn from '@/components/plugins/TableRefreshBtn.vue';
+import DescribeResource from '../dialogs/DescribeResource.vue';
 
 export default {
     components: {
-        TableRefreshBtn
+        TableRefreshBtn,
+        DescribeResource
     },
     data: () => ({
         table: new ServiceTable(),
         showSetDialog: false,
         showDescribeDialog: false,
-        selectNode: null,
+        selectResource: {},
     }),
     methods: {
         refresh: async function () {
             this.table.refresh();
         },
+        describeService: function(item){
+            this.selectResource = item;
+            this.showDescribeDialog = !this.showDescribeDialog;
+        }
 
     },
     created: async function () {

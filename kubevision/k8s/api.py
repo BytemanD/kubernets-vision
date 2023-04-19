@@ -35,6 +35,7 @@ class ClientWrapper(object):
             objects.Namespace.from_object(obj)
             for obj in self.api.list_namespace().items
         ]
+
     def get_namespace(self, name):
         return self.api.read_namespace(name)
 
@@ -136,7 +137,8 @@ class ClientWrapper(object):
 
     def patch_daemonset(self, name, body, ns=None, **kwargs):
         LOG.info('patch ds %s', name)
-        self.apps_api.patch_namespaced_daemon_set(name, ns, body, field_manager='replace', force=True)
+        self.apps_api.patch_namespaced_daemon_set(
+            name, ns, body, field_manager='replace', force=True)
         return self.apps_api.patch_namespaced_daemon_set(
             name, ns or constants.DEFAULT_NAMESPACE, body,
             **kwargs)
@@ -163,11 +165,12 @@ class ClientWrapper(object):
             tail_lines=tail_lines,
             **kwargs)
 
-    def exec_on_pod(self, name, command, ns=None, container=None, async_req=False, **kwargs):
+    def exec_on_pod(self, name, command, ns=None, container=None,
+                    async_req=False, **kwargs):
         result = stream(self.api.connect_post_namespaced_pod_exec,
                         name, ns, command=['/bin/sh', '-c', command],
-                        container=container, stdout=True, stderr=True, tty=False,
-                        async_req=async_req,
+                        container=container, stdout=True, stderr=True,
+                        tty=False, async_req=async_req,
                         **kwargs)
         return async_req and result.get() or result
 
@@ -176,7 +179,11 @@ class ClientWrapper(object):
             objects.Service.from_object(service)
             for service in self.api.list_namespaced_service(
                 ns or constants.DEFAULT_NAMESPACE).items
-        ] 
+        ]
+
+    def get_service(self, name, ns=None):
+        return self.api.read_namespaced_service(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
     def list_cron_job(self, ns=None):
         return [
@@ -202,21 +209,21 @@ class ClientWrapper(object):
 
     def get_configmap(self, name, ns=None):
         return self.api.read_namespaced_config_map(
-                name, ns or constants.DEFAULT_NAMESPACE)
+            name, ns or constants.DEFAULT_NAMESPACE)
 
     def get_version(self):
         return self.version_api.get_code()
 
     def get_cluster_info(self):
         config = get_config()
-        return  {
+        return {
             'config': {
                 'host': config.host,
                 'verify_ssl': config.verify_ssl,
             },
             'version': self.version_api.get_code().to_dict(),
             'current_context': get_current_context(),
-        } 
+        }
 
     def create_workload(self, yaml_file):
         import yaml
@@ -248,7 +255,7 @@ class ClientWrapper(object):
         if not create_with_namespce:
             return create_func(yaml_doc)
 
-        namespace =yaml_doc.get(
+        namespace = yaml_doc.get(
             'metadata', {}).get('namespace', constants.DEFAULT_NAMESPACE)
         return create_func(namespace, yaml_doc)
 
