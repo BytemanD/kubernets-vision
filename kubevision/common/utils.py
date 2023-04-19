@@ -1,9 +1,6 @@
 from pbr import version
 import functools
 import logging
-import tempfile
-import os
-import contextlib
 
 import requests
 from kubernetes.client import exceptions
@@ -105,30 +102,6 @@ def response(func):
     return wrapper
 
 
-# TODO: move is to easy2use
-def with_response(return_code=200):
-
-    def _response(func):
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-            try:
-                resp = func(self, *args, **kwargs)
-            except Exception as e:
-                LOG.exception(e)
-                resp = 500, f'Internal Server error: {str(e)}'
-            if isinstance(resp, tuple):
-                status, body = resp
-            else:
-                status = return_code
-                body = resp
-            self.set_status(status)
-            self.finish(body)
-
-        return wrapper
-
-    return _response
-
-
 def register_action(name):
 
     def decorator(func):
@@ -147,19 +120,3 @@ def format_time(obj, key, str_format='%Y-%m-%d %H:%M:%S'):
     if not getattr(obj, key):
         return
     setattr(obj, key, parse_datetime(getattr(obj, key)))
-
-
-# TODO: use from eas2use
-@contextlib.contextmanager
-def make_temp_file(content):
-    file_fd, file_path = tempfile.mkstemp()
-
-    try:
-        with os.fdopen(file_fd, 'w') as f:
-            f.write(content)
-        yield file_path
-    finally:
-        try:
-            os.remove(file_path)
-        except Exception as e:
-            LOG.warning('delete file %s failed, %s', file_path, e)

@@ -1,7 +1,7 @@
-import json
 import logging
 import inspect
-from tornado import web
+
+from easy2use.web import application
 
 from kubevision.common import conf
 from kubevision.common import constants
@@ -13,30 +13,7 @@ LOG = logging.getLogger(__name__)
 CONF = conf.CONF
 
 
-class BaseReqHandler(web.RequestHandler):
-
-    def set_default_headers(self):
-        super().set_default_headers()
-        if CONF.enable_cross_domain:
-            self.set_header('Access-Control-Allow-Origin', '*')
-            self.set_header('Access-Control-Allow-Headers', '*')
-            self.set_header('Access-Control-Allow-Max-Age', 1000)
-            self.set_header('Access-Control-Allow-Methods',
-                            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-
-    def return_resp(self, status, data):
-        self.set_status(status)
-        self.finish(data)
-
-    def _get_body(self):
-        return json.loads(self.request.body)
-
-    @utils.with_response(return_code=204)
-    def options(self, *args, **kwargs):
-        LOG.debug('options request')
-
-
-class RequestContext(BaseReqHandler):
+class RequestContext(application.BaseReqHandler):
     NAMESPACE = 'X-Namespace'
 
     def _get_header(self, header):

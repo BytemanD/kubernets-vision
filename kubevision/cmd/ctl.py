@@ -3,7 +3,6 @@ import mimetypes
 import os
 import sys
 import subprocess
-import pathlib
 
 from easy2use.downloader.urllib import driver
 from easy2use.globals import cli
@@ -153,17 +152,17 @@ class Serve(cli.SubCli):
         if args.enale_cross_domain:
             CONF.enable_cross_domain = True
 
-        if not pathlib.Path(args.static).exists():
-            LOG.warning('static path %s not exists.', args.static)
-        if not pathlib.Path(args.template).exists():
-            LOG.warning('template path %s not exists.', args.template)
-
         conf.load_configs()
         api.init(CONF.k8s.kube_config)
 
-        app = KubeVisionApp(views.get_routes(), develop=args.develop,
-                            template_path=args.template,
-                            static_path=args.static)
+        application.init(enable_cross_domain=CONF.enable_cross_domain,
+                         index_redirect=CONF.index_redirect)
+
+        app = application.TornadoApp(
+            application.get_routes() + views.get_routes(),
+            develop=args.develop,
+            template_path=args.template,
+            static_path=args.static)
         app.start(port=args.port or CONF.port,
                   num_processes=CONF.workers)
 

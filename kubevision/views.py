@@ -6,6 +6,9 @@ from tornado import web
 from kubevision.k8s import api
 from kubevision.k8s import objects
 
+from easy2use import fs
+from easy2use.web import application
+
 from kubevision.common import conf
 from kubevision.common import constants
 from kubevision.common import exceptions
@@ -53,29 +56,8 @@ class ObjectMixin(object):
         return yaml.dump(obj_dict)
 
 
-@registry_route(r'/')
-class Index(wsgi.BaseReqHandler):
-
-    def get(self):
-        if CONF.index_redirect:
-            self.redirect(CONF.index_redirect)
-        else:
-            self.redirect('index.html')
-
-
-@registry_route(r'/.+\.html')
-class Html(wsgi.BaseReqHandler):
-
-    def get(self):
-        try:
-            self.render(self.request.path[1:])
-        except FileNotFoundError:
-            self.set_status(404)
-            self.finish({'error': f'{self.request.path[1:]} not found'})
-
-
 @registry_route(r'/config.json')
-class ConfigJson(wsgi.BaseReqHandler):
+class ConfigJson(wsgi.RequestContext):
 
     def get(self):
         try:
@@ -86,9 +68,9 @@ class ConfigJson(wsgi.BaseReqHandler):
 
 
 @registry_route(r'/version')
-class Version(wsgi.BaseReqHandler):
+class Version(wsgi.RequestContext):
 
-    @utils.with_response()
+    @application.with_response()
     def get(self):
         return {'version': {'backend': utils.get_version()}}
 
@@ -103,7 +85,7 @@ class Nodes(wsgi.RequestContext):
 
 
 @registry_route(r'/node/(.*)')
-class Node(wsgi.BaseReqHandler, ObjectMixin):
+class Node(wsgi.RequestContext, ObjectMixin):
 
     @utils.response
     def get(self, name):
@@ -112,7 +94,7 @@ class Node(wsgi.BaseReqHandler, ObjectMixin):
 
 
 @registry_route(r'/namespace')
-class Namespaces(wsgi.BaseReqHandler):
+class Namespaces(wsgi.RequestContext):
 
     @utils.response
     def get(self):
@@ -121,7 +103,7 @@ class Namespaces(wsgi.BaseReqHandler):
 
 
 @registry_route(r'/namespace/(.+)')
-class Namespace(wsgi.BaseReqHandler, ObjectMixin):
+class Namespace(wsgi.RequestContext, ObjectMixin):
 
     @utils.response
     def get(self, name):
@@ -172,7 +154,7 @@ class Deployment(wsgi.RequestContext, ObjectMixin):
             result = self.to_yaml(deploy)
         return {'deployment': result}
 
-    @utils.with_response(return_code=204)
+    @application.with_response(return_code=204)
     def delete(self, name):
         context = self.get_context()
         api.CLIENT.delete_deploy(name, ns=context.namespace)
@@ -194,12 +176,12 @@ class Daemonset(wsgi.RequestContext, ObjectMixin):
             result = self.to_yaml(daemonset)
         return {'daemonset': result}
 
-    @utils.with_response(return_code=204)
+    @application.with_response(return_code=204)
     def delete(self, daemonset):
         context = self.get_context()
         api.CLIENT.delete_daemonset(daemonset, ns=context.namespace)
 
-    @utils.with_response(return_code=202)
+    @application.with_response(return_code=202)
     def put(self, daemonset):
         """
         body:
@@ -263,7 +245,7 @@ class Pod(wsgi.RequestContext, ObjectMixin):
             result = self.to_yaml(pod)
         return {'pod': result}
 
-    @utils.with_response(return_code=204)
+    @application.with_response(return_code=204)
     def delete(self, name):
         context = self.get_context()
         LOG.debug('options request')
@@ -418,7 +400,7 @@ class Action(wsgi.BaseAction):
         if not workload_doc:
             raise exceptions.InvalidYaml()
 
-        with utils.make_temp_file(workload_doc) as file:
+        with fs.make_temp_file(workload_doc) as file:
             LOG.debug('template file: %s', file)
             try:
                 api.CLIENT.create_workload(file)

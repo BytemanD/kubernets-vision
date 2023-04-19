@@ -18,7 +18,7 @@ default_options = [
     cfg.IntOption('workers', default=None),
     cfg.Option('data_path', default='/etc/kubevision'),
     cfg.BooleanOption('enable_cross_domain', default=False),
-    cfg.Option('index_redirect', default='/index.html'),
+    cfg.Option('index_redirect', default=None),
 ]
 
 k8s_options = [
