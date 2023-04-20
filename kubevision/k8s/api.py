@@ -25,7 +25,7 @@ class ClientWrapper(object):
 
     def __init__(self):
         self.api = client.CoreV1Api()
-        self.api_client = client.ApiClient()
+        # self.api_client = client.ApiClient()
         self.apps_api = client.AppsV1Api()
         self.version_api = client.VersionApi()
         self.batch_api = client.BatchV1Api()
@@ -240,7 +240,7 @@ class ClientWrapper(object):
 
         create_func = None
         create_with_namespce = False
-        for api_client in [self.apps_api, self.api]:
+        for api_client in [self.apps_api, self.api, self.batch_api]:
             if hasattr(api_client, f'create_namespaced_{kind}'):
                 create_func = getattr(api_client, f'create_namespaced_{kind}')
                 create_with_namespce = True
@@ -258,6 +258,18 @@ class ClientWrapper(object):
         namespace = yaml_doc.get(
             'metadata', {}).get('namespace', constants.DEFAULT_NAMESPACE)
         return create_func(namespace, yaml_doc)
+
+    def list_secret(self, ns=None):
+        return [
+            objects.Secret.from_object(obj)
+            for obj in self.api.list_namespaced_secret(
+                ns or constants.DEFAULT_NAMESPACE
+            ).items
+        ]
+
+    def get_secret(self, name, ns=None):
+        return self.api.read_namespaced_secret(
+            name, ns or constants.DEFAULT_NAMESPACE)
 
 
 def get_config():

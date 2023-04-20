@@ -22,6 +22,7 @@ LOG = logging.getLogger(__name__)
 step_num = 0
 
 
+# TODO: move to easy2use
 def log_step(func):
     func_doc = inspect.getdoc(func)
     step_title = func_doc and func_doc.split('\n')[0] or func.__name__

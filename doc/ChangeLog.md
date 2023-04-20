@@ -1,8 +1,9 @@
 ## TODO
 
 ## v0.0.2
-- [ ] 支持 CronJon查询
-- [ ] 支持 Jon 查询
+- [X] 支持 Secret 查询
+- [X] 支持 CronJon 查询
+- [X] 支持 Jon 查询
 
 ## v0.0.1
 

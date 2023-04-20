@@ -13,7 +13,7 @@
             </v-toolbar>
             <v-card-text class="pt-2">
                 <div style="height: 480px">
-                    <HighlightCode id="configMapCode" :code="configMapData" :hightlight="hightlight" />
+                    <HighlightCode id="secretCode" :code="secretContent" :hightlight="hightlight" />
                 </div>
             </v-card-text>
         </v-card>
@@ -40,12 +40,16 @@ export default {
         key: null,
         hightlight: false,
         selectConfigName: null,
-        configData: { data: {} },
-        configMapData: '',
+        secretData: { data: {} },
+        secretContent: '',
     }),
     methods: {
         getConfigMap: async function () {
-            this.configMap = (await API.configmap.get(this.resource)).configmap;
+            this.configMap = (await API.secret.get(this.resource)).secret;
+            for (let key in this.configMap.data){
+                console.log(key)
+
+            }
             if (Object.keys(this.configMap.data).length == 0) {
                 this.key = null;
             } else {
@@ -54,7 +58,7 @@ export default {
         },
         selectConfigData: function (name) {
             this.selectConfigName = name;
-            this.configMapData = this.configMap.data[this.selectConfigName];
+            this.secretContent = this.configMap.data[this.selectConfigName];
         }
     },
     watch: {

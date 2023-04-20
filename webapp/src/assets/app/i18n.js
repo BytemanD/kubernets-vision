@@ -121,6 +121,7 @@ const MESSAGES = {
 
         configCenter: '配置',
         configMap: '配置字典',
+        secret: '加密数据',
     },
 };
 

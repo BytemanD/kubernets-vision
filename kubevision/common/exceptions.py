@@ -31,14 +31,18 @@ class NotSupportKind(exs.BaseException):
     _msg = 'Not support kind: {kind}'
 
 
-class ApiException(web.HTTPError):
+class RouteExists(exs.BaseException):
+    _msg = 'Route "{route}" is already exists'
 
+
+class ApiException(web.HTTPError):
+    
     def __init__(self, status, msg, reason=None):
         super().__init__(status, msg, reason=reason)
 
 
 class InvalidYaml(ApiException):
-
+    
     def __init__(self):
         super().__init__(400, 'Invalid yaml')
 

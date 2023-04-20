@@ -75,6 +75,7 @@ const navigationGroup = [
     name: 'configCenter',
     items: [
       { title: 'configMap', icon: 'mdi-alpha-c-circle', router: '/configmap' },
+      { title: 'secret', icon: 'mdi-alpha-s-circle', router: '/secret' },
     ]
   },
 ]

@@ -175,7 +175,7 @@ export class PodTable extends DataTable {
             { text: 'containers', value: 'containers' },
             { text: '创建时间', value: 'creation' },
             { text: '操作', value: 'actions' },
-        ], API.pod, 'pods', 'Pod');
+        ], API.pod, 'pods', '容器组');
         this.extendItems = [
             { text: 'labels', value: 'labels' },
             { text: 'node_selector', value: 'node_selector' },
@@ -193,7 +193,19 @@ export class ConfigMapTable extends DataTable {
                { text: '数据个数', value: 'data_nums' },
                { text: '创建时间', value: 'creation' },
                { text: '操作', value: 'actions' },
-            ], API.configmap, 'configmaps', '节点');
+            ], API.configmap, 'configmaps', '配置字典');
+            this.extendItems = [
+                   { text: '数据', value: 'data_list' },
+            ]
+    }
+}
+export class SecretTable extends DataTable {
+    constructor() {
+        super([{ text: '名字', value: 'name' },
+               { text: '数据个数', value: 'data_nums' },
+               { text: '创建时间', value: 'creation' },
+               { text: '操作', value: 'actions' },
+            ], API.secret, 'secrets', '加密数据');
             this.extendItems = [
                    { text: '数据', value: 'data_list' },
             ]
@@ -215,22 +227,27 @@ export class ServiceTable extends DataTable {
             ]
     }
 }
-export class Cronjob extends DataTable {
+export class CronjobTable extends DataTable {
     constructor() {
         super([{ text: '名字', value: 'name' },
-               { text: '数据个数', value: 'data_nums' },
-
-            ], API.cronJob, 'cronJobs', '定时任务');
+               { text: 'node_selector', value: 'node_selector' },
+               { text: 'selector', value: 'selector' },
+               { text: 'containers', value: 'containers' },
+               { text: '创建时间', value: 'creation' },
+               { text: '创建时间', value: 'creation' },
+            ], API.cronJob, 'cronjobs', '定时任务');
             this.extendItems = [
                    { text: '数据', value: 'data_list' },
             ]
     }
 }
-export class Job extends DataTable {
+export class JobTable extends DataTable {
     constructor() {
         super([{ text: '名字', value: 'name' },
-               { text: '数据个数', value: 'data_nums' },
-
+               { text: 'node_selector', value: 'node_selector' },
+               { text: 'selector', value: 'selector' },
+               { text: 'containers', value: 'containers' },
+               { text: '创建时间', value: 'creation' },
             ], API.job, 'jobs', '任务');
             this.extendItems = [
                    { text: '数据', value: 'data_list' },

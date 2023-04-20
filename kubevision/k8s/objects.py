@@ -1,7 +1,9 @@
-import logging
 from dataclasses import dataclass
+import logging
+import yaml
 
 from kubernetes.client.models import v1_daemon_set
+from kubernetes.client.models import v1_cron_job
 
 from kubevision.common import utils
 
@@ -17,10 +19,14 @@ def get_images(obj):
 
 
 def get_containers(obj):
+    if isinstance(obj, v1_cron_job.V1CronJob):
+        template = obj.spec.job_template.spec.template
+    else:
+        template = obj.spec.template
     try:
         return [
             {'name': cnt.name, 'command': cnt.command, 'args': cnt.args,
-             'image': cnt.image} for cnt in obj.spec.template.spec.containers
+             'image': cnt.image} for cnt in template.spec.containers
         ]
     except AttributeError as e:
         LOG.warn(e)
@@ -72,6 +78,22 @@ def get_creation(obj):
     }
 
 
+def get_node_selector(obj):
+    try:
+        return obj.spec.template.spec.node_selector
+    except AttributeError as e:
+        LOG.warn(e)
+        return {}
+
+
+def get_selector(obj):
+    try:
+        return obj.spec.selector.match_labels
+    except AttributeError as e:
+        LOG.warn(e)
+        return {}
+
+
 @dataclass
 class Context:
     namespace: str
@@ -84,6 +106,23 @@ class Context:
 class BaseDataObject:
     name: str
     creation: str
+
+    @staticmethod
+    def to_yaml(obj):
+        obj_dict = obj.to_dict()
+        metadata = obj_dict.get('metadata')
+
+        utils.format_time(metadata, 'creation_timestamp')
+        if 'managed_fields' in metadata:
+            metadata['managed_fields'] = None
+
+        status = obj_dict.get('status')
+        if status and 'conditions' in status:
+            for condition in status.get('conditions') or []:
+                utils.format_time(condition, 'last_heartbeat_time')
+                utils.format_time(condition, 'last_transition_time')
+
+        return yaml.dump(obj_dict)
 
 
 @dataclass
@@ -193,22 +232,6 @@ class DaemonSet(BaseDataObject):
     init_containers: list
 
     @classmethod
-    def get_node_selector(cls, daemonset: v1_daemon_set.V1DaemonSet):
-        try:
-            return daemonset.spec.template.spec.node_selector
-        except AttributeError as e:
-            LOG.warn(e)
-            return {}
-
-    @classmethod
-    def get_selector(cls, daemonset: v1_daemon_set.V1DaemonSet):
-        try:
-            return daemonset.spec.selector.match_labels
-        except AttributeError as e:
-            LOG.warn(e)
-            return {}
-
-    @classmethod
     def from_object(cls, obj):
         return cls(
             name=obj.metadata.name, creation=get_creation(obj),
@@ -217,8 +240,8 @@ class DaemonSet(BaseDataObject):
             current_number_scheduled=obj.status.current_number_scheduled,
             desired_number_scheduled=obj.status.desired_number_scheduled,
             labels=obj.metadata.labels or [],
-            node_selector=cls.get_node_selector(obj),
-            selector=cls.get_selector(obj),
+            node_selector=get_node_selector(obj),
+            selector=get_selector(obj),
             images=get_images(obj),
             containers=get_containers(obj),
             init_containers=get_init_containers(obj),
@@ -227,12 +250,15 @@ class DaemonSet(BaseDataObject):
 
 @dataclass
 class StatusfulSet(BaseDataObject):
+    labels: list
+    node_selector: dict
+    selector: dict
+    images: list
+    containers: list
+    init_containers: list
 
     @classmethod
     def from_object(cls, obj):
-        name = obj.metadata.name
-        labels = obj.metadata.labels
-        host_ip = obj.status.host_ip
         pod_ip = obj.status.pod_ip
         node_name = obj.spec.node_name
         node_selector = obj.spec.node_selector
@@ -243,10 +269,13 @@ class StatusfulSet(BaseDataObject):
         ]
         container_statuses = get_container_statuses(obj)
         return cls(
-            name=name, creation=get_creation(obj),
-            labels=labels, node_name=node_name,
-            node_selector=node_selector, host_ip=host_ip,
-            pod_ip=pod_ip, containers=containers,
+            name=obj.metadata.name,
+            creation=get_creation(obj),
+            labels=obj.metadata.labels,
+            node_name=node_name,
+            node_selector=node_selector,
+            pod_ip=pod_ip,
+            containers=containers,
             container_statuses=container_statuses,
             deletion=get_deletion(obj),
         )
@@ -254,25 +283,39 @@ class StatusfulSet(BaseDataObject):
 
 @dataclass
 class CronJob(BaseDataObject):
+    labels: list
+    node_selector: dict
+    selector: dict
+    containers: list
 
     @classmethod
     def from_object(cls, obj):
-        name = obj.metadata.name
         return cls(
-            name=name,
+            name=obj.metadata.name,
             creation=get_creation(obj),
+            labels=obj.metadata.labels or [],
+            node_selector=get_node_selector(obj),
+            selector=get_selector(obj),
+            containers=get_containers(obj),
         )
 
 
 @dataclass
 class Job(BaseDataObject):
+    labels: list
+    node_selector: dict
+    selector: dict
+    containers: list
 
     @classmethod
     def from_object(cls, obj):
-        name = obj.metadata.name
-        return cls(
-            name=name,
+        return Job(
+            name=obj.metadata.name,
             creation=get_creation(obj),
+            labels=obj.metadata.labels or [],
+            node_selector=get_node_selector(obj),
+            selector=get_selector(obj),
+            containers=get_containers(obj),
         )
 
 
@@ -346,4 +389,19 @@ class ConfigMap(BaseDataObject):
             creation=get_creation(obj),
             data_list=list(obj.data.keys()),
             data=detail and obj.data or {}
+        )
+
+
+@dataclass
+class Secret(BaseDataObject):
+    data_list: list
+    data: dict
+
+    @classmethod
+    def from_object(cls, obj, detail=False):
+        return cls(
+            name=obj.metadata.name,
+            creation=get_creation(obj),
+            data_list=list(obj.data.keys()),
+            data=detail and obj.data or {},
         )

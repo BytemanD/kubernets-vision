@@ -127,6 +127,9 @@ class ConfigMap extends Restfulclient {
 class Service extends Restfulclient {
     constructor() { super('/service') }
 }
+class Secret extends Restfulclient {
+    constructor() { super('/secret') }
+}
 class Cronjob extends Restfulclient {
     constructor() { super('/cronjob') }
 }
@@ -179,6 +182,7 @@ export class Api {
         this.version = new Version();
         this.configmap = new ConfigMap();
         this.service = new Service();
+        this.secret = new Secret();
         this.cronJob = new Cronjob();
         this.job = new Job();
     }

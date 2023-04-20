@@ -29,7 +29,8 @@ import PodPage from './components/dashboard/application/pod/PodPage';
 import ServicePage from './components/dashboard/application/ServicePage';
 
 // config
-import ConfigMapPage from './components/dashboard/config/ConfigMapPage'
+import ConfigMapPage from './components/dashboard/config/ConfigMapPage';
+import SecretPage from './components/dashboard/config/SecretPage';
 
 Vue.use(VueRouter)
 
@@ -55,6 +56,7 @@ let router = new VueRouter({
         { path: '/service', component: ServicePage },
         { path: '/pod', component: PodPage },
         { path: '/configmap', component: ConfigMapPage },
+        { path: '/secret', component: SecretPage },
     ]
 })
 

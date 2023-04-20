@@ -29,6 +29,9 @@ def registry_route(url):
     def registry(cls):
         global ROUTES
 
+        if url in [route[0] for route in ROUTES]:
+            raise exceptions.RouteExists(route=url)
+        LOG.info('register route %s %s', url, cls)
         ROUTES.append((url, cls))
         return cls
     return registry
@@ -36,24 +39,16 @@ def registry_route(url):
 
 class ObjectMixin(object):
 
-    @classmethod
-    def to_yaml(cls, obj):
-        # TODO
-        # move this code to objects
-        obj_dict = obj.to_dict()
-        metadata = obj_dict.get('metadata')
 
-        utils.format_time(metadata, 'creation_timestamp')
-        if 'managed_fields' in metadata:
-            metadata['managed_fields'] = None
-
-        status = obj_dict.get('status')
-        if status and 'conditions' in status:
-            for condition in status.get('conditions') or []:
-                utils.format_time(condition, 'last_heartbeat_time')
-                utils.format_time(condition, 'last_transition_time')
-
-        return yaml.dump(obj_dict)
+    def _get_obj(self, k8s_obj, cls: objects.BaseDataObject, fmt=None,
+                 **kwargs):
+        if fmt and fmt not in ['json', 'yaml']:
+            raise exceptions.InvalidRequest(f'format {fmt} is invalid')
+        if not fmt or fmt == 'json':
+            result = cls.from_object(k8s_obj, **kwargs).__dict__
+        elif fmt == 'yaml':
+            result = cls.to_yaml(k8s_obj)
+        return result
 
 
 @registry_route(r'/config.json')
@@ -90,7 +85,7 @@ class Node(wsgi.RequestContext, ObjectMixin):
     @utils.response
     def get(self, name):
         node = api.CLIENT.get_node(name)
-        return {'node': self.to_yaml(node)}
+        return {'node': objects.Node.to_yaml(node)}
 
 
 @registry_route(r'/namespace')
@@ -114,7 +109,7 @@ class Namespace(wsgi.RequestContext, ObjectMixin):
         if not fmt or fmt == 'json':
             result = objects.Namespace.from_object(namespace).__dict__
         elif fmt == 'yaml':
-            result = self.to_yaml(namespace)
+            result = objects.Namespace.to_yaml(namespace)
         return {'namespace': result}
 
 
@@ -151,7 +146,7 @@ class Deployment(wsgi.RequestContext, ObjectMixin):
         if not fmt or fmt == 'json':
             result = objects.Deployment.from_object(deploy).__dict__
         elif fmt == 'yaml':
-            result = self.to_yaml(deploy)
+            result = objects.Deployment.to_yaml(deploy)
         return {'deployment': result}
 
     @application.with_response(return_code=204)
@@ -173,7 +168,7 @@ class Daemonset(wsgi.RequestContext, ObjectMixin):
         if not fmt or fmt == 'json':
             result = objects.DaemonSet.from_object(daemonset).__dict__
         elif fmt == 'yaml':
-            result = self.to_yaml(daemonset)
+            result = objects.DaemonSet.to_yaml(daemonset)
         return {'daemonset': result}
 
     @application.with_response(return_code=204)
@@ -242,7 +237,7 @@ class Pod(wsgi.RequestContext, ObjectMixin):
         if not fmt or fmt == 'json':
             result = objects.Pod.from_object(pod).__dict__
         elif fmt == 'yaml':
-            result = self.to_yaml(pod)
+            result = objects.Pod.to_yaml(pod)
         return {'pod': result}
 
     @application.with_response(return_code=204)
@@ -275,7 +270,7 @@ class Service(wsgi.RequestContext, ObjectMixin):
         if not fmt or fmt == 'json':
             result = objects.Pod.from_object(pod).__dict__
         elif fmt == 'yaml':
-            result = self.to_yaml(pod)
+            result = objects.Service.to_yaml(pod)
         return {'service': result}
 
 
@@ -295,8 +290,8 @@ class Job(wsgi.RequestContext, ObjectMixin):
     @utils.response
     def get(self):
         context = self.get_context()
-        items = api.CLIENT.list_service(ns=context.namespace)
-        return {'services': [item.__dict__ for item in items]}
+        items = api.CLIENT.list_job(ns=context.namespace)
+        return {'jobs': [item.__dict__ for item in items]}
 
 
 @registry_route(r'/configmap')
@@ -318,15 +313,39 @@ class ConfigMap(wsgi.RequestContext, ObjectMixin):
 
         fmt = self.get_argument('format', 'json')
         configmap = api.CLIENT.get_configmap(name, ns=context.namespace)
-        # import pdb; pdb.set_trace()
         if fmt and fmt not in ['json', 'yaml']:
             raise exceptions.InvalidRequest(f'format {fmt} is invalid')
         if not fmt or fmt == 'json':
             result = objects.ConfigMap.from_object(configmap,
                                                    detail=True).__dict__
         elif fmt == 'yaml':
-            result = self.to_yaml(configmap)
+            result = objects.ConfigMap.to_yaml(configmap)
         return {'configmap': result}
+
+
+@registry_route(r'/secret')
+class Secrets(wsgi.RequestContext, ObjectMixin):
+
+    @utils.response
+    def get(self):
+        context = self.get_context()
+        items = api.CLIENT.list_secret(ns=context.namespace)
+        return {'secrets': [item.__dict__ for item in items]}
+
+
+@registry_route(r'/secret/(.+)')
+class Secret(wsgi.RequestContext, ObjectMixin):
+ 
+    @utils.response
+    def get(self, name):
+        context = self.get_context()
+        result = self._get_obj(
+            api.CLIENT.get_secret(name, ns=context.namespace),
+            objects.Secret,
+            fmt=self.get_argument('format', 'json'),
+            detail=True
+        )
+        return {'secret': result}
 
 
 @registry_route(r'/action')
