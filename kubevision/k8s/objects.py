@@ -94,6 +94,10 @@ def get_selector(obj):
         return {}
 
 
+def get_phase(obj):
+    return obj.status.phase
+
+
 @dataclass
 class Context:
     namespace: str
@@ -352,6 +356,7 @@ class Pod(BaseDataObject):
     containers: list
     container_statuses: list
     deletion: dict
+    phase: str
 
     @classmethod
     def from_object(cls, obj):
@@ -361,10 +366,16 @@ class Pod(BaseDataObject):
         pod_ip = obj.status.pod_ip
         node_name = obj.spec.node_name
         node_selector = obj.spec.node_selector
-        containers = [
-            {'name': container.name, 'image': container.image,
-             'command': container.command}
-            for container in obj.spec.containers
+        containers = [{
+            'name': container.name, 'image': container.image,
+            'command': container.command,
+            'image_pull_policy': container.image_pull_policy,
+            'ports': [
+                {'protocol': port.protocol, 'host_port': port.host_port,
+                 'container_port': port.container_port}
+                for port in container.ports or []
+            ]
+            } for container in obj.spec.containers
         ]
         container_statuses = get_container_statuses(obj)
         return Pod(
@@ -374,6 +385,7 @@ class Pod(BaseDataObject):
             pod_ip=pod_ip, containers=containers,
             container_statuses=container_statuses,
             deletion=get_deletion(obj),
+            phase=get_phase(obj),
         )
 
 

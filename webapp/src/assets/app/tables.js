@@ -168,10 +168,11 @@ export class PodTable extends DataTable {
     constructor() {
         super([
             { text: '名字', value: 'name' },
-            { text: 'Ready', value: 'ready' },
+            { text: '就绪', value: 'ready' },
+            { text: '阶段', value: 'phase' },
             { text: '状态', value: 'state' },
-            { text: 'node_name', value: 'node_name' },
-            { text: 'pod_ip', value: 'pod_ip' },
+            { text: '所在节点', value: 'node_name' },
+            { text: 'IP地址', value: 'pod_ip' },
             { text: 'containers', value: 'containers' },
             { text: '创建时间', value: 'creation' },
             { text: '操作', value: 'actions' },

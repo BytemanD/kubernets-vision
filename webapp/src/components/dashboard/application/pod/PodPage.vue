@@ -48,6 +48,9 @@
                 <v-icon small>mdi-dots-vertical</v-icon></v-btn>
             </template>
             <v-list dense>
+              <v-list-item @click="showPod(item)">
+                <v-list-item-title>查看</v-list-item-title>
+              </v-list-item>
               <v-list-item @click="describeResource(item)">
                 <v-list-item-title>描述</v-list-item-title>
               </v-list-item>
@@ -78,6 +81,7 @@
     <DescribeResource :show.sync="showDescribeDialog" resource-name='pod' :resource="selectResource.name" />
     <PodLogs :show.sync="showPodLogsDialog" :pod="selectResource" />
     <PodExec :show.sync="showPodExecDialog" :pod="selectResource" />
+    <PodDialog :show.sync="showPodDialog" :pod="selectResource" />
   </v-row>
 </template>
 <script>
@@ -88,10 +92,12 @@ import TableRefreshBtn from '../../../plugins/TableRefreshBtn';
 import DescribeResource from '../../dialogs/DescribeResource.vue';
 import PodLogs from './dialogs/PodLogs.vue';
 import PodExec from './dialogs/PodExec.vue';
+import PodDialog from './dialogs/PodDialog.vue';
 
 export default {
   components: {
     TableRefreshBtn, DescribeResource, PodLogs, PodExec,
+    PodDialog,
   },
   data: () => ({
     Utils: Utils,
@@ -99,7 +105,8 @@ export default {
     showDescribeDialog: false,
     selectResource: {},
     showPodLogsDialog: false,
-    showPodExecDialog: false
+    showPodExecDialog: false,
+    showPodDialog: false,
   }),
   methods: {
     refresh: async function () {
@@ -116,6 +123,10 @@ export default {
     openPodExecDialog: function (item) {
       this.selectResource = item;
       this.showPodExecDialog = !this.showPodExecDialog;
+    },
+    showPod: function (item) {
+      this.selectResource = item;
+      this.showPodDialog = !this.showPodDialog;
     },
   },
   created: async function () {

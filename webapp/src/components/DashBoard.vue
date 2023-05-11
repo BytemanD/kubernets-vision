@@ -8,7 +8,7 @@
         </v-list-item-content>
       </v-list-item>
       <v-list shaped dense>
-        <v-list-item-group v-model="navigation.itemIndex" color="primary">
+        <v-list-item-group v-model="navigation.itemIndex" color="warning">
           <template v-for="group in navigation.group">
             <template>
               <v-subheader v-bind:key="group.name">

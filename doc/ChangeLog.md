@@ -4,6 +4,8 @@
 - [X] 支持 Secret 查询
 - [X] 支持 CronJon 查询
 - [X] 支持 Jon 查询
+- [X] 支持 Service 删除
+- [X] 支持 查看 Pod 详情
 
 ## v0.0.1
 
