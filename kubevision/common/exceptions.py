@@ -36,13 +36,11 @@ class RouteExists(exs.BaseException):
 
 
 class ApiException(web.HTTPError):
-    
     def __init__(self, status, msg, reason=None):
         super().__init__(status, msg, reason=reason)
 
 
 class InvalidYaml(ApiException):
-    
     def __init__(self):
         super().__init__(400, 'Invalid yaml')
 

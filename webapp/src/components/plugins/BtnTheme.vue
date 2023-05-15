@@ -1,5 +1,5 @@
 <template>
-    <v-tooltip top>
+    <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
             <v-btn icon v-on:click="onclickCallback()" v-bind="attrs" v-on="on">
                 <v-icon v-if="$vuetify.theme.dark">mdi-weather-night</v-icon>

@@ -136,6 +136,9 @@ class Cronjob extends Restfulclient {
 class Job extends Restfulclient {
     constructor() { super('/job') }
 }
+class Event extends Restfulclient {
+    constructor() { super('/event') }
+}
 class Action extends Restfulclient {
     constructor() { super('/action') }
 
@@ -185,6 +188,7 @@ export class Api {
         this.secret = new Secret();
         this.cronJob = new Cronjob();
         this.job = new Job();
+        this.event = new Event();
     }
     async addNodeLabels (name, labels){
         await this.action.post({addLabel: {kind: 'node', name: name, labels: labels}});

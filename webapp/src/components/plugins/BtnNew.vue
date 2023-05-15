@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-tooltip top>
+        <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
                 <v-btn icon color="primary" @click="onclickCallback()" v-bind="attrs" v-on="on">
                     <v-icon>mdi-plus</v-icon>

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import logging
 import yaml
 
-from kubernetes.client.models import v1_daemon_set
 from kubernetes.client.models import v1_cron_job
 
 from kubevision.common import utils
@@ -416,4 +415,35 @@ class Secret(BaseDataObject):
             creation=get_creation(obj),
             data_list=list(obj.data.keys()),
             data=detail and obj.data or {},
+        )
+
+
+@dataclass
+class Event(BaseDataObject):
+    type: str
+    event_time: str
+    involved_object: str
+    message: str
+    reason: str
+    source: dict
+    action: str
+    count: int
+
+    @classmethod
+    def from_object(cls, obj):
+        # if not obj.event_time:
+        #     import pdb; pdb.set_trace()
+
+        return cls(
+            name=obj.metadata.name,
+            creation=get_creation(obj),
+            type=obj.type,
+            event_time=utils.parse_datetime(
+                obj.event_time or obj.first_timestamp),
+            involved_object=obj.involved_object.to_dict(),
+            message=obj.message,
+            reason=obj.reason,
+            source=obj.source.to_dict(),
+            action=obj.action,
+            count=obj.count or 0,
         )

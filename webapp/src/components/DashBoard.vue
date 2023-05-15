@@ -35,6 +35,7 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <BtnNew />
+      <BtnEvent />
       <BtnTheme />
       <BtnAbout />
     </v-app-bar>
@@ -53,6 +54,7 @@ import i18n from '@/assets/app/i18n';
 import BtnTheme from './plugins/BtnTheme.vue';
 import BtnAbout from './plugins/BtnAbout.vue';
 import BtnNew from './plugins/BtnNew.vue';
+import BtnEvent from './plugins/BtnEvent.vue';
 
 const navigationGroup = [
   {
@@ -82,7 +84,7 @@ const navigationGroup = [
 
 export default {
   components: {
-    BtnTheme, BtnAbout, BtnNew,
+    BtnTheme, BtnAbout, BtnNew, BtnEvent,
   },
 
   data: () => ({

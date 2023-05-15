@@ -39,6 +39,7 @@ const MESSAGES = {
         instance: 'instance',
         instanceNum: 'instance num',
         node: 'node',
+        event: 'event',
 
         new: 'new',
         serverTopology: 'Server Topology',
@@ -86,7 +87,7 @@ const MESSAGES = {
         vm: '虚拟机',
         instance: '实例',
         instanceNum: '虚拟机数量',
-        
+
         tenantUsage: '资源使用情况',
         last1Day: '最近1天',
         last7Days: '最近7天',
@@ -108,6 +109,7 @@ const MESSAGES = {
         overview: '预览',
         namespace: '命名空间',
         node: '节点',
+        event: '事件',
 
         application: '应用',
         workload: "工作负载",

@@ -16,7 +16,7 @@
         :items-per-page="table.itemsPerPage" :search="table.search" show-select v-model="table.selected" show-expand
         single-expand>
         <template v-slot:[`item.creation`]="{ item }">
-          {{ item.creation.timestamp }}
+          {{ item.creation && item.creation.timestamp }}
         </template>
         <template v-slot:[`item.ready`]="{ item }">
           {{ Utils.getPodReadyNum(item) }} /{{ item.container_statuses.length }}
@@ -29,7 +29,7 @@
             </template>
             {{ table.waiting[item.name].message }}
           </v-tooltip>
-          <v-tooltip top v-else-if="item.deletion.timestamp">
+          <v-tooltip top v-else-if="item.deletion && item.deletion.timestamp">
             <template v-slot:activator="{ on, attrs }">
               <span class="warning--text" v-bind="attrs" v-on="on">Terminating</span>
             </template>

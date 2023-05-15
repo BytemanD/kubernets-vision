@@ -1,8 +1,5 @@
-import json
 import logging
-import yaml
 
-from tornado import web
 from kubevision.k8s import api
 from kubevision.k8s import objects
 
@@ -38,7 +35,6 @@ def registry_route(url):
 
 
 class ObjectMixin(object):
-
 
     def _get_obj(self, k8s_obj, cls: objects.BaseDataObject, fmt=None,
                  **kwargs):
@@ -335,7 +331,7 @@ class Secrets(wsgi.RequestContext, ObjectMixin):
 
 @registry_route(r'/secret/(.+)')
 class Secret(wsgi.RequestContext, ObjectMixin):
- 
+
     @utils.response
     def get(self, name):
         context = self.get_context()
@@ -429,51 +425,15 @@ class Action(wsgi.BaseAction):
                 raise exceptions.InvalidRequest(str(e))
 
 
-class Configs(web.RequestHandler):
+@registry_route(r'/event')
+class Events(wsgi.RequestContext, ObjectMixin):
 
+    @utils.response
     def get(self):
-        global CONF_DB_API
-
-        self.set_status(200)
-        self.finish({'configs': [
-            item.to_dict() for item in CONF_DB_API.list()]
-        })
-
-
-class Cluster(web.RequestHandler):
-
-    def get(self):
-        cluster_list = api.query_cluster()
-        self.set_status(200)
-        self.finish({
-            'clusters': [cluster.to_dict() for cluster in cluster_list]
-        })
-
-    def post(self):
-        data = json.loads(self.request.body)
-        cluster = data.get('cluster', {})
-        LOG.debug('add cluster: %s', data)
-        try:
-            api.create_cluster(cluster.get('name'), cluster.get('authUrl'),
-                               cluster.get('authProject'),
-                               cluster.get('authUser'),
-                               cluster.get('authPassword'))
-            self.set_status(200)
-            self.finish(json.dumps({}))
-        except Exception as e:
-            LOG.exception(e)
-            self.set_status(400)
-            self.finish({'error': str(e)})
-
-    def delete(self, cluster_id):
-        deleted = api.delete_cluster_by_id(cluster_id)
-        if deleted >= 1:
-            self.set_status(204)
-            self.finish()
-        else:
-            self.set_status(404)
-            self.finish({'error': f'cluster {cluster_id} is not found'})
-        return
+        context = self.get_context()
+        items = api.CLIENT.list_event(ns=context.namespace)
+        LOG.info('xxxxxxx %s', items)
+        return {'events': [item.__dict__ for item in items]}
 
 
 def get_routes():

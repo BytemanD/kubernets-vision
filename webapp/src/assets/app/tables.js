@@ -255,4 +255,19 @@ export class JobTable extends DataTable {
             ]
     }
 }
+export class EventTable extends DataTable {
+    constructor() {
+        super([
+            // { text: '名字', value: 'name' },
+            { text: '时间', value: 'event_time' },
+            { text: '类型', value: 'type' },
+            // { text: '操作', value: 'action' },
+            { text: '对象', value: 'involved_object' },
+            { text: '重复次数', value: 'count' },
+            { text: '原因', value: 'reason' },
+            { text: '消息', value: 'message' },
+            // { text: '来源', value: 'source' },
+         ], API.event, 'events', '事件');
+    }
+}
 export default DataTable;

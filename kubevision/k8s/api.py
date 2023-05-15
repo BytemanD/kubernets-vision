@@ -271,6 +271,14 @@ class ClientWrapper(object):
         return self.api.read_namespaced_secret(
             name, ns or constants.DEFAULT_NAMESPACE)
 
+    def list_event(self, ns=None):
+        return [
+            objects.Event.from_object(obj)
+            for obj in self.api.list_namespaced_event(
+                ns or constants.DEFAULT_NAMESPACE
+            ).items
+        ]
+
 
 def get_config():
     return config.kube_config.Configuration._default
