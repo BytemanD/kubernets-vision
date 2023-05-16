@@ -217,12 +217,11 @@ class PyWebDockerBuilder(object):
             LOG.info('镜像构建成功')
         except Exception:
             LOG.exception('镜像构建失败')
-            return
+            raise
         finally:
-            # TODO
             self.cleanup([
-                os.path.basename(dst_path) for _, dst_path in build_resources]
-            )
+                os.path.basename(dst_path) for _, dst_path in build_resources
+            ])
 
         try:
             self.push_image(self.image_name, whl_version)
