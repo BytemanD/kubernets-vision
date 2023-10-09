@@ -64,6 +64,7 @@ const CONFIG = 'config.json'
 
 axios.get(CONFIG).then((resp) => {
     axios.defaults.baseURL = resp.data.backend_url;
+    localStorage.static_stylesheet = JSON.stringify(resp.data.static_stylesheet);
 
     new Vue({
       vuetify,

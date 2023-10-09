@@ -1,6 +1,8 @@
+import json
 import logging
 import mimetypes
 import os
+import pathlib
 import sys
 import subprocess
 
@@ -157,6 +159,20 @@ class Serve(cli.SubCli):
 
         application.init(enable_cross_domain=CONF.enable_cross_domain,
                          index_redirect=CONF.index_redirect)
+
+        if args.template and CONF.web.stylesheet:
+            json_file = pathlib.Path(args.template, 'config.json')
+            if not json_file.exists():
+                LOG.warning("config json %s is not exists", json_file)
+            else:
+                LOG.debug("update config json %s", json_file)
+                with open(json_file) as fp:
+                    config_json = json.load(fp)
+                    config_json['static_stylesheet'] = CONF.web.stylesheet
+                new_config_json = json.dumps(config_json, indent=4)
+                with open(json_file, 'w') as fp:
+                    LOG.debug("new config json: %s", new_config_json)
+                    fp.write(new_config_json)
 
         app = application.TornadoApp(
             application.get_routes() + views.get_routes(),

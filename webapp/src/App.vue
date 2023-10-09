@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import Init from '@/assets/app/init';
 import DashBoard from './components/DashBoard';
 
 
@@ -14,6 +15,9 @@ export default {
   },
   methods: {
 
+  },
+  created() {
+    Init()
   },
   mounted() {
     // this.showMessage({title: '测试'})

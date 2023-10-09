@@ -25,6 +25,9 @@ k8s_options = [
     cfg.Option('kube_config', default=constants.DEFAULT_KUBE_CONFIG),
 ]
 
+web_options = [
+    cfg.ListOption(name='stylesheet', default=None),
+]
 
 def load_configs():
     for file in constants.DEFAULT_CONF_FILES:
@@ -39,3 +42,4 @@ def load_configs():
 
 CONF.register_opts(default_options)
 CONF.register_opts(k8s_options, group='k8s')
+CONF.register_opts(web_options, group='web')
